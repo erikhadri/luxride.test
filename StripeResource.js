@@ -1,9 +1,12 @@
-import { getDataFromArgs, getOptionsFromArgs, makeURLInterpolator, protoExtend, queryStringifyRequestData, getAPIMode, } from './utils.js';
-import { stripeMethod } from './StripeMethod.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StripeResource = void 0;
+const utils_js_1 = require("./utils.js");
+const StripeMethod_js_1 = require("./StripeMethod.js");
 // Provide extension mechanism for Stripe Resource Sub-Classes
-StripeResource.extend = protoExtend;
+StripeResource.extend = utils_js_1.protoExtend;
 // Expose method-creator
-StripeResource.method = stripeMethod;
+StripeResource.method = StripeMethod_js_1.stripeMethod;
 StripeResource.MAX_BUFFERED_REQUEST_METRICS = 100;
 /**
  * Encapsulates request logic for a Stripe Resource
@@ -13,15 +16,16 @@ function StripeResource(stripe, deprecatedUrlData) {
     if (deprecatedUrlData) {
         throw new Error('Support for curried url params was dropped in stripe-node v7.0.0. Instead, pass two ids.');
     }
-    this.basePath = makeURLInterpolator(
+    this.basePath = (0, utils_js_1.makeURLInterpolator)(
     // @ts-ignore changing type of basePath
     this.basePath || stripe.getApiField('basePath'));
     // @ts-ignore changing type of path
     this.resourcePath = this.path;
     // @ts-ignore changing type of path
-    this.path = makeURLInterpolator(this.path);
+    this.path = (0, utils_js_1.makeURLInterpolator)(this.path);
     this.initialize(...arguments);
 }
+exports.StripeResource = StripeResource;
 StripeResource.prototype = {
     _stripe: null,
     // @ts-ignore the type of path changes in ctor
@@ -82,7 +86,7 @@ StripeResource.prototype = {
         const urlParams = spec.urlParams || [];
         const encode = spec.encode || ((data) => data);
         const isUsingFullPath = !!spec.fullPath;
-        const commandPath = makeURLInterpolator(isUsingFullPath ? spec.fullPath : spec.path || '');
+        const commandPath = (0, utils_js_1.makeURLInterpolator)(isUsingFullPath ? spec.fullPath : spec.path || '');
         // When using fullPath, we ignore the resource path as it should already be
         // fully qualified.
         const path = isUsingFullPath
@@ -100,9 +104,9 @@ StripeResource.prototype = {
             return urlData;
         }, {});
         // Pull request data and options (headers, auth) from args.
-        const dataFromArgs = getDataFromArgs(args);
+        const dataFromArgs = (0, utils_js_1.getDataFromArgs)(args);
         const data = encode(Object.assign({}, dataFromArgs, overrideData));
-        const options = getOptionsFromArgs(args);
+        const options = (0, utils_js_1.getOptionsFromArgs)(args);
         const host = options.host || spec.host;
         const streaming = !!spec.streaming || !!options.streaming;
         // Validate that there are no more args.
@@ -159,7 +163,7 @@ StripeResource.prototype = {
             const path = [
                 opts.requestPath,
                 emptyQuery ? '' : '?',
-                queryStringifyRequestData(opts.queryData, getAPIMode(opts.requestPath)),
+                (0, utils_js_1.queryStringifyRequestData)(opts.queryData, (0, utils_js_1.getAPIMode)(opts.requestPath)),
             ].join('');
             const { headers, settings } = opts;
             this._stripe._requestSender._request(opts.requestMethod, opts.host, path, opts.bodyData, opts.authenticator, {
@@ -170,4 +174,3 @@ StripeResource.prototype = {
         });
     },
 };
-export { StripeResource };

@@ -1,3 +1,6 @@
+"use strict";
 // File generated from our OpenAPI spec
-export const ApiVersion = '2025-08-27.basil';
-export const ApiMajorVersion = 'basil';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ApiMajorVersion = exports.ApiVersion = void 0;
+exports.ApiVersion = '2025-08-27.basil';
+exports.ApiMajorVersion = 'basil';

@@ -1,4 +1,7 @@
-import * as qs from 'qs';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseHeadersForFetch = exports.parseHttpHeaderAsNumber = exports.parseHttpHeaderAsString = exports.getAPIMode = exports.jsonStringifyRequestData = exports.concat = exports.createApiKeyAuthenticator = exports.determineProcessUserAgentProperties = exports.validateInteger = exports.flattenAndStringify = exports.isObject = exports.emitWarning = exports.pascalToCamelCase = exports.callbackifyPromiseWithTimeout = exports.normalizeHeader = exports.normalizeHeaders = exports.removeNullish = exports.protoExtend = exports.getOptionsFromArgs = exports.getDataFromArgs = exports.extractUrlParams = exports.makeURLInterpolator = exports.queryStringifyRequestData = exports.isOptionsHash = void 0;
+const qs = require("qs");
 const OPTIONS_KEYS = [
     'apiKey',
     'idempotencyKey',
@@ -12,16 +15,17 @@ const OPTIONS_KEYS = [
     'additionalHeaders',
     'streaming',
 ];
-export function isOptionsHash(o) {
+function isOptionsHash(o) {
     return (o &&
         typeof o === 'object' &&
         OPTIONS_KEYS.some((prop) => Object.prototype.hasOwnProperty.call(o, prop)));
 }
+exports.isOptionsHash = isOptionsHash;
 /**
  * Stringifies an Object, accommodating nested objects
  * (forming the conventional key 'parent[child]=value')
  */
-export function queryStringifyRequestData(data, apiMode) {
+function queryStringifyRequestData(data, apiMode) {
     return (qs
         .stringify(data, {
         serializeDate: (d) => Math.floor(d.getTime() / 1000).toString(),
@@ -33,13 +37,14 @@ export function queryStringifyRequestData(data, apiMode) {
         .replace(/%5B/g, '[')
         .replace(/%5D/g, ']'));
 }
+exports.queryStringifyRequestData = queryStringifyRequestData;
 /**
  * Outputs a new function with interpolated object property values.
  * Use like so:
  *   const fn = makeURLInterpolator('some/url/{param1}/{param2}');
  *   fn({ param1: 123, param2: 456 }); // => 'some/url/123/456'
  */
-export const makeURLInterpolator = (() => {
+exports.makeURLInterpolator = (() => {
     const rc = {
         '\n': '\\n',
         '"': '\\"',
@@ -61,20 +66,21 @@ export const makeURLInterpolator = (() => {
 function isValidEncodeUriComponentType(value) {
     return ['number', 'string', 'boolean'].includes(typeof value);
 }
-export function extractUrlParams(path) {
+function extractUrlParams(path) {
     const params = path.match(/\{\w+\}/g);
     if (!params) {
         return [];
     }
     return params.map((param) => param.replace(/[{}]/g, ''));
 }
+exports.extractUrlParams = extractUrlParams;
 /**
  * Return the data argument from a list of arguments
  *
  * @param {object[]} args
  * @returns {object}
  */
-export function getDataFromArgs(args) {
+function getDataFromArgs(args) {
     if (!Array.isArray(args) || !args[0] || typeof args[0] !== 'object') {
         return {};
     }
@@ -93,10 +99,11 @@ export function getDataFromArgs(args) {
     }
     return {};
 }
+exports.getDataFromArgs = getDataFromArgs;
 /**
  * Return the options hash from a list of arguments
  */
-export function getOptionsFromArgs(args) {
+function getOptionsFromArgs(args) {
     const opts = {
         host: null,
         headers: {},
@@ -161,11 +168,12 @@ export function getOptionsFromArgs(args) {
     }
     return opts;
 }
+exports.getOptionsFromArgs = getOptionsFromArgs;
 /**
  * Provide simple "Class" extension mechanism.
  * <!-- Public API accessible via Stripe.StripeResource.extend -->
  */
-export function protoExtend(sub) {
+function protoExtend(sub) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const Super = this;
     const Constructor = Object.prototype.hasOwnProperty.call(sub, 'constructor')
@@ -183,10 +191,11 @@ export function protoExtend(sub) {
     Object.assign(Constructor.prototype, sub);
     return Constructor;
 }
+exports.protoExtend = protoExtend;
 /**
  * Remove empty values from an object
  */
-export function removeNullish(obj) {
+function removeNullish(obj) {
     if (typeof obj !== 'object') {
         throw new Error('Argument must be an object');
     }
@@ -197,13 +206,14 @@ export function removeNullish(obj) {
         return result;
     }, {});
 }
+exports.removeNullish = removeNullish;
 /**
  * Normalize standard HTTP Headers:
  * {'foo-bar': 'hi'}
  * becomes
  * {'Foo-Bar': 'hi'}
  */
-export function normalizeHeaders(obj) {
+function normalizeHeaders(obj) {
     if (!(obj && typeof obj === 'object')) {
         return obj;
     }
@@ -212,17 +222,19 @@ export function normalizeHeaders(obj) {
         return result;
     }, {});
 }
+exports.normalizeHeaders = normalizeHeaders;
 /**
  * Stolen from https://github.com/marten-de-vries/header-case-normalizer/blob/master/index.js#L36-L41
  * without the exceptions which are irrelevant to us.
  */
-export function normalizeHeader(header) {
+function normalizeHeader(header) {
     return header
         .split('-')
         .map((text) => text.charAt(0).toUpperCase() + text.substr(1).toLowerCase())
         .join('-');
 }
-export function callbackifyPromiseWithTimeout(promise, callback) {
+exports.normalizeHeader = normalizeHeader;
+function callbackifyPromiseWithTimeout(promise, callback) {
     if (callback) {
         // Ensure callback is called outside of promise stack.
         return promise.then((res) => {
@@ -237,10 +249,11 @@ export function callbackifyPromiseWithTimeout(promise, callback) {
     }
     return promise;
 }
+exports.callbackifyPromiseWithTimeout = callbackifyPromiseWithTimeout;
 /**
  * Allow for special capitalization cases (such as OAuth)
  */
-export function pascalToCamelCase(name) {
+function pascalToCamelCase(name) {
     if (name === 'OAuth') {
         return 'oauth';
     }
@@ -248,18 +261,21 @@ export function pascalToCamelCase(name) {
         return name[0].toLowerCase() + name.substring(1);
     }
 }
-export function emitWarning(warning) {
+exports.pascalToCamelCase = pascalToCamelCase;
+function emitWarning(warning) {
     if (typeof process.emitWarning !== 'function') {
         return console.warn(`Stripe: ${warning}`); /* eslint-disable-line no-console */
     }
     return process.emitWarning(warning, 'Stripe');
 }
-export function isObject(obj) {
+exports.emitWarning = emitWarning;
+function isObject(obj) {
     const type = typeof obj;
     return (type === 'function' || type === 'object') && !!obj;
 }
+exports.isObject = isObject;
 // For use in multipart requests
-export function flattenAndStringify(data) {
+function flattenAndStringify(data) {
     const result = {};
     const step = (obj, prevKey) => {
         Object.entries(obj).forEach(([key, value]) => {
@@ -284,7 +300,8 @@ export function flattenAndStringify(data) {
     step(data, null);
     return result;
 }
-export function validateInteger(name, n, defaultVal) {
+exports.flattenAndStringify = flattenAndStringify;
+function validateInteger(name, n, defaultVal) {
     if (!Number.isInteger(n)) {
         if (defaultVal !== undefined) {
             return defaultVal;
@@ -295,7 +312,8 @@ export function validateInteger(name, n, defaultVal) {
     }
     return n;
 }
-export function determineProcessUserAgentProperties() {
+exports.validateInteger = validateInteger;
+function determineProcessUserAgentProperties() {
     return typeof process === 'undefined'
         ? {}
         : {
@@ -303,7 +321,8 @@ export function determineProcessUserAgentProperties() {
             platform: process.platform,
         };
 }
-export function createApiKeyAuthenticator(apiKey) {
+exports.determineProcessUserAgentProperties = determineProcessUserAgentProperties;
+function createApiKeyAuthenticator(apiKey) {
     const authenticator = (request) => {
         request.headers.Authorization = 'Bearer ' + apiKey;
         return Promise.resolve();
@@ -312,10 +331,11 @@ export function createApiKeyAuthenticator(apiKey) {
     authenticator._apiKey = apiKey;
     return authenticator;
 }
+exports.createApiKeyAuthenticator = createApiKeyAuthenticator;
 /**
  * Joins an array of Uint8Arrays into a single Uint8Array
  */
-export function concat(arrays) {
+function concat(arrays) {
     const totalLength = arrays.reduce((len, array) => len + array.length, 0);
     const merged = new Uint8Array(totalLength);
     let offset = 0;
@@ -325,6 +345,7 @@ export function concat(arrays) {
     });
     return merged;
 }
+exports.concat = concat;
 /**
  * Replaces Date objects with Unix timestamps
  */
@@ -337,30 +358,35 @@ function dateTimeReplacer(key, value) {
 /**
  * JSON stringifies an Object, replacing Date objects with Unix timestamps
  */
-export function jsonStringifyRequestData(data) {
+function jsonStringifyRequestData(data) {
     return JSON.stringify(data, dateTimeReplacer);
 }
+exports.jsonStringifyRequestData = jsonStringifyRequestData;
 /**
  * Inspects the given path to determine if the endpoint is for v1 or v2 API
  */
-export function getAPIMode(path) {
+function getAPIMode(path) {
     if (!path) {
         return 'v1';
     }
     return path.startsWith('/v2') ? 'v2' : 'v1';
 }
-export function parseHttpHeaderAsString(header) {
+exports.getAPIMode = getAPIMode;
+function parseHttpHeaderAsString(header) {
     if (Array.isArray(header)) {
         return header.join(', ');
     }
     return String(header);
 }
-export function parseHttpHeaderAsNumber(header) {
+exports.parseHttpHeaderAsString = parseHttpHeaderAsString;
+function parseHttpHeaderAsNumber(header) {
     const number = Array.isArray(header) ? header[0] : header;
     return Number(number);
 }
-export function parseHeadersForFetch(headers) {
+exports.parseHttpHeaderAsNumber = parseHttpHeaderAsNumber;
+function parseHeadersForFetch(headers) {
     return Object.entries(headers).map(([key, value]) => {
         return [key, parseHttpHeaderAsString(value)];
     });
 }
+exports.parseHeadersForFetch = parseHeadersForFetch;

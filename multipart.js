@@ -1,4 +1,7 @@
-import { flattenAndStringify, queryStringifyRequestData } from './utils.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.multipartRequestDataProcessor = void 0;
+const utils_js_1 = require("./utils.js");
 // Method for formatting HTTP body for the multipart/form-data specification
 // Mostly taken from Fermata.js
 // https://github.com/natevw/fermata/blob/5d9732a33d776ce925013a265935facd1626cc88/fermata.js#L315-L343
@@ -19,7 +22,7 @@ const multipartDataGenerator = (method, data, headers) => {
     function q(s) {
         return `"${s.replace(/"|"/g, '%22').replace(/\r\n|\r|\n/g, ' ')}"`;
     }
-    const flattenedData = flattenAndStringify(data);
+    const flattenedData = (0, utils_js_1.flattenAndStringify)(data);
     for (const k in flattenedData) {
         if (!Object.prototype.hasOwnProperty.call(flattenedData, k)) {
             continue;
@@ -42,10 +45,10 @@ const multipartDataGenerator = (method, data, headers) => {
     push(`--${segno}--`);
     return buffer;
 };
-export function multipartRequestDataProcessor(method, data, headers, callback) {
+function multipartRequestDataProcessor(method, data, headers, callback) {
     data = data || {};
     if (method !== 'POST') {
-        return callback(null, queryStringifyRequestData(data));
+        return callback(null, (0, utils_js_1.queryStringifyRequestData)(data));
     }
     this._stripe._platformFunctions
         .tryBufferData(data)
@@ -55,3 +58,4 @@ export function multipartRequestDataProcessor(method, data, headers, callback) {
     })
         .catch((err) => callback(err, null));
 }
+exports.multipartRequestDataProcessor = multipartRequestDataProcessor;

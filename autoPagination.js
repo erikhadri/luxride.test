@@ -1,4 +1,7 @@
-import { callbackifyPromiseWithTimeout, getDataFromArgs, getAPIMode, } from './utils.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.makeAutoPaginationMethods = void 0;
+const utils_js_1 = require("./utils.js");
 class V1Iterator {
     constructor(firstPagePromise, requestArgs, spec, stripeResource) {
         this.index = 0;
@@ -116,8 +119,8 @@ class V2ListIterator {
         return { done: true, value: undefined };
     }
 }
-export const makeAutoPaginationMethods = (stripeResource, requestArgs, spec, firstPagePromise) => {
-    const apiMode = getAPIMode(spec.fullPath || spec.path);
+const makeAutoPaginationMethods = (stripeResource, requestArgs, spec, firstPagePromise) => {
+    const apiMode = (0, utils_js_1.getAPIMode)(spec.fullPath || spec.path);
     if (apiMode !== 'v2' && spec.methodType === 'search') {
         return makeAutoPaginationMethodsFromIterator(new V1SearchIterator(firstPagePromise, requestArgs, spec, stripeResource));
     }
@@ -129,6 +132,7 @@ export const makeAutoPaginationMethods = (stripeResource, requestArgs, spec, fir
     }
     return null;
 };
+exports.makeAutoPaginationMethods = makeAutoPaginationMethods;
 const makeAutoPaginationMethodsFromIterator = (iterator) => {
     const autoPagingEach = makeAutoPagingEach((...args) => iterator.next(...args));
     const autoPagingToArray = makeAutoPagingToArray(autoPagingEach);
@@ -224,7 +228,7 @@ function makeAutoPagingEach(asyncIteratorNext) {
         const autoPagePromise = wrapAsyncIteratorWithCallback(asyncIteratorNext, 
         // @ts-ignore we might need a null check
         onItem);
-        return callbackifyPromiseWithTimeout(autoPagePromise, onDone);
+        return (0, utils_js_1.callbackifyPromiseWithTimeout)(autoPagePromise, onDone);
     };
 }
 function makeAutoPagingToArray(autoPagingEach) {
@@ -250,7 +254,7 @@ function makeAutoPagingToArray(autoPagingEach) {
                 .catch(reject);
         });
         // @ts-ignore
-        return callbackifyPromiseWithTimeout(promise, onDone);
+        return (0, utils_js_1.callbackifyPromiseWithTimeout)(promise, onDone);
     };
 }
 function wrapAsyncIteratorWithCallback(asyncIteratorNext, onItem) {
@@ -282,6 +286,6 @@ function wrapAsyncIteratorWithCallback(asyncIteratorNext, onItem) {
 }
 function isReverseIteration(requestArgs) {
     const args = [].slice.call(requestArgs);
-    const dataFromArgs = getDataFromArgs(args);
+    const dataFromArgs = (0, utils_js_1.getDataFromArgs)(args);
     return !!dataFromArgs.ending_before;
 }

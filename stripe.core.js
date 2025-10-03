@@ -1,16 +1,19 @@
-import * as _Error from './Error.js';
-import { RequestSender } from './RequestSender.js';
-import { StripeResource } from './StripeResource.js';
-import { createWebhooks } from './Webhooks.js';
-import { ApiVersion } from './apiVersion.js';
-import { CryptoProvider } from './crypto/CryptoProvider.js';
-import { HttpClient, HttpClientResponse } from './net/HttpClient.js';
-import * as resources from './resources.js';
-import { createApiKeyAuthenticator, determineProcessUserAgentProperties, pascalToCamelCase, validateInteger, } from './utils.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createStripe = void 0;
+const _Error = require("./Error.js");
+const RequestSender_js_1 = require("./RequestSender.js");
+const StripeResource_js_1 = require("./StripeResource.js");
+const Webhooks_js_1 = require("./Webhooks.js");
+const apiVersion_js_1 = require("./apiVersion.js");
+const CryptoProvider_js_1 = require("./crypto/CryptoProvider.js");
+const HttpClient_js_1 = require("./net/HttpClient.js");
+const resources = require("./resources.js");
+const utils_js_1 = require("./utils.js");
 const DEFAULT_HOST = 'api.stripe.com';
 const DEFAULT_PORT = '443';
 const DEFAULT_BASE_PATH = '/v1/';
-const DEFAULT_API_VERSION = ApiVersion;
+const DEFAULT_API_VERSION = apiVersion_js_1.ApiVersion;
 const DEFAULT_TIMEOUT = 80000;
 const MAX_NETWORK_RETRY_DELAY_SEC = 5;
 const INITIAL_NETWORK_RETRY_DELAY_SEC = 0.5;
@@ -31,17 +34,17 @@ const ALLOWED_CONFIG_PROPERTIES = [
     'stripeAccount',
     'stripeContext',
 ];
-const defaultRequestSenderFactory = (stripe) => new RequestSender(stripe, StripeResource.MAX_BUFFERED_REQUEST_METRICS);
-export function createStripe(platformFunctions, requestSender = defaultRequestSenderFactory) {
+const defaultRequestSenderFactory = (stripe) => new RequestSender_js_1.RequestSender(stripe, StripeResource_js_1.StripeResource.MAX_BUFFERED_REQUEST_METRICS);
+function createStripe(platformFunctions, requestSender = defaultRequestSenderFactory) {
     Stripe.PACKAGE_VERSION = '18.5.0';
-    Stripe.API_VERSION = ApiVersion;
-    Stripe.USER_AGENT = Object.assign({ bindings_version: Stripe.PACKAGE_VERSION, lang: 'node', publisher: 'stripe', uname: null, typescript: false }, determineProcessUserAgentProperties());
-    Stripe.StripeResource = StripeResource;
+    Stripe.API_VERSION = apiVersion_js_1.ApiVersion;
+    Stripe.USER_AGENT = Object.assign({ bindings_version: Stripe.PACKAGE_VERSION, lang: 'node', publisher: 'stripe', uname: null, typescript: false }, (0, utils_js_1.determineProcessUserAgentProperties)());
+    Stripe.StripeResource = StripeResource_js_1.StripeResource;
     Stripe.resources = resources;
-    Stripe.HttpClient = HttpClient;
-    Stripe.HttpClientResponse = HttpClientResponse;
-    Stripe.CryptoProvider = CryptoProvider;
-    Stripe.webhooks = createWebhooks(platformFunctions);
+    Stripe.HttpClient = HttpClient_js_1.HttpClient;
+    Stripe.HttpClientResponse = HttpClient_js_1.HttpClientResponse;
+    Stripe.CryptoProvider = CryptoProvider_js_1.CryptoProvider;
+    Stripe.webhooks = (0, Webhooks_js_1.createWebhooks)(platformFunctions);
     function Stripe(key, config = {}) {
         if (!(this instanceof Stripe)) {
             return new Stripe(key, config);
@@ -65,8 +68,8 @@ export function createStripe(platformFunctions, requestSender = defaultRequestSe
             protocol: props.protocol || 'https',
             basePath: DEFAULT_BASE_PATH,
             version: props.apiVersion || DEFAULT_API_VERSION,
-            timeout: validateInteger('timeout', props.timeout, DEFAULT_TIMEOUT),
-            maxNetworkRetries: validateInteger('maxNetworkRetries', props.maxNetworkRetries, 2),
+            timeout: (0, utils_js_1.validateInteger)('timeout', props.timeout, DEFAULT_TIMEOUT),
+            maxNetworkRetries: (0, utils_js_1.validateInteger)('maxNetworkRetries', props.maxNetworkRetries, 2),
             agent: agent,
             httpClient: props.httpClient ||
                 (agent
@@ -153,7 +156,7 @@ export function createStripe(platformFunctions, requestSender = defaultRequestSe
                 throw new Error('Neither apiKey nor config.authenticator provided');
             }
             this._authenticator = key
-                ? createApiKeyAuthenticator(key)
+                ? (0, utils_js_1.createApiKeyAuthenticator)(key)
                 : authenticator;
         },
         /**
@@ -233,7 +236,7 @@ export function createStripe(platformFunctions, requestSender = defaultRequestSe
          * This may be removed in the future.
          */
         _setApiNumberField(prop, n, defaultVal) {
-            const val = validateInteger(prop, n, defaultVal);
+            const val = (0, utils_js_1.validateInteger)(prop, n, defaultVal);
             this._setApiField(prop, val);
         },
         getMaxNetworkRetryDelay() {
@@ -320,7 +323,7 @@ export function createStripe(platformFunctions, requestSender = defaultRequestSe
                     continue;
                 }
                 // @ts-ignore
-                this[pascalToCamelCase(name)] = new resources[name](this);
+                this[(0, utils_js_1.pascalToCamelCase)(name)] = new resources[name](this);
             }
         },
         /**
@@ -358,3 +361,4 @@ export function createStripe(platformFunctions, requestSender = defaultRequestSe
     };
     return Stripe;
 }
+exports.createStripe = createStripe;

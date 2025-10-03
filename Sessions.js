@@ -4,10 +4,6 @@ const stripeMethod = StripeResource.method;
 export const Sessions = StripeResource.extend({
     create: stripeMethod({
         method: 'POST',
-        fullPath: '/v1/financial_connections/sessions',
-    }),
-    retrieve: stripeMethod({
-        method: 'GET',
-        fullPath: '/v1/financial_connections/sessions/{session}',
+        fullPath: '/v1/billing_portal/sessions',
     }),
 });

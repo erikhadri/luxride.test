@@ -1,22 +1,21 @@
 // File generated from our OpenAPI spec
-import { StripeResource } from '../../StripeResource.js';
+import { StripeResource } from '../../../StripeResource.js';
 const stripeMethod = StripeResource.method;
 export const OutboundPayments = StripeResource.extend({
-    create: stripeMethod({
+    update: stripeMethod({
         method: 'POST',
-        fullPath: '/v1/treasury/outbound_payments',
+        fullPath: '/v1/test_helpers/treasury/outbound_payments/{id}',
     }),
-    retrieve: stripeMethod({
-        method: 'GET',
-        fullPath: '/v1/treasury/outbound_payments/{id}',
-    }),
-    list: stripeMethod({
-        method: 'GET',
-        fullPath: '/v1/treasury/outbound_payments',
-        methodType: 'list',
-    }),
-    cancel: stripeMethod({
+    fail: stripeMethod({
         method: 'POST',
-        fullPath: '/v1/treasury/outbound_payments/{id}/cancel',
+        fullPath: '/v1/test_helpers/treasury/outbound_payments/{id}/fail',
+    }),
+    post: stripeMethod({
+        method: 'POST',
+        fullPath: '/v1/test_helpers/treasury/outbound_payments/{id}/post',
+    }),
+    returnOutboundPayment: stripeMethod({
+        method: 'POST',
+        fullPath: '/v1/test_helpers/treasury/outbound_payments/{id}/return',
     }),
 });

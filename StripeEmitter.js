@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StripeEmitter = void 0;
 /**
  * @private
  * (For internal use in stripe-node.)
@@ -10,7 +13,7 @@ class _StripeEvent extends Event {
     }
 }
 /** Minimal EventEmitter wrapper around EventTarget. */
-export class StripeEmitter {
+class StripeEmitter {
     constructor() {
         this.eventTarget = new EventTarget();
         this.listenerMapping = new Map();
@@ -40,3 +43,4 @@ export class StripeEmitter {
         return this.eventTarget.dispatchEvent(new _StripeEvent(eventName, data));
     }
 }
+exports.StripeEmitter = StripeEmitter;
