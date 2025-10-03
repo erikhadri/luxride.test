@@ -1,7 +1,10 @@
+"use strict";
 // File generated from our OpenAPI spec
-import { StripeResource } from '../../StripeResource.js';
-const stripeMethod = StripeResource.method;
-export const EarlyFraudWarnings = StripeResource.extend({
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.EarlyFraudWarnings = void 0;
+const StripeResource_js_1 = require("../../StripeResource.js");
+const stripeMethod = StripeResource_js_1.StripeResource.method;
+exports.EarlyFraudWarnings = StripeResource_js_1.StripeResource.extend({
     retrieve: stripeMethod({
         method: 'GET',
         fullPath: '/v1/radar/early_fraud_warnings/{early_fraud_warning}',
