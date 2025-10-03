@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HttpClientResponse = exports.HttpClient = void 0;
 /**
  * Encapsulates the logic for issuing a request to the Stripe API.
  *
@@ -7,7 +10,7 @@
  * 2. A client class which extends HttpClient and implements all methods,
  *    returning their own response class when making requests.
  */
-export class HttpClient {
+class HttpClient {
     /** The client name used for diagnostics. */
     getClientName() {
         throw new Error('getClientName not implemented.');
@@ -22,10 +25,11 @@ export class HttpClient {
         return timeoutErr;
     }
 }
+exports.HttpClient = HttpClient;
 // Public API accessible via Stripe.HttpClient
 HttpClient.CONNECTION_CLOSED_ERROR_CODES = ['ECONNRESET', 'EPIPE'];
 HttpClient.TIMEOUT_ERROR_CODE = 'ETIMEDOUT';
-export class HttpClientResponse {
+class HttpClientResponse {
     constructor(statusCode, headers) {
         this._statusCode = statusCode;
         this._headers = headers;
@@ -46,3 +50,4 @@ export class HttpClientResponse {
         throw new Error('toJSON not implemented.');
     }
 }
+exports.HttpClientResponse = HttpClientResponse;

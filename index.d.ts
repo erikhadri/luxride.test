@@ -1,15 +1,41 @@
-export type * from './types.js';
-export { default as MAX } from './max.js';
-export { default as NIL } from './nil.js';
-export { default as parse } from './parse.js';
-export { default as stringify } from './stringify.js';
-export { default as v1 } from './v1.js';
-export { default as v1ToV6 } from './v1ToV6.js';
-export { default as v3 } from './v3.js';
-export { default as v4 } from './v4.js';
-export { default as v5 } from './v5.js';
-export { default as v6 } from './v6.js';
-export { default as v6ToV1 } from './v6ToV1.js';
-export { default as v7 } from './v7.js';
-export { default as validate } from './validate.js';
-export { default as version } from './version.js';
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License.
+ *  REQUIREMENT: This definition is dependent on the @types/node definition.
+ *  Install with `npm install @types/node --save-dev`
+ *--------------------------------------------------------------------------------------------*/
+
+declare module 'iconv-lite' {
+	// Basic API
+	export function decode(buffer: Buffer | Uint8Array, encoding: string, options?: Options): string;
+
+	export function encode(content: string, encoding: string, options?: Options): Buffer;
+
+	export function encodingExists(encoding: string): boolean;
+
+	// Stream API
+	export function decodeStream(encoding: string, options?: Options): NodeJS.ReadWriteStream;
+
+	export function encodeStream(encoding: string, options?: Options): NodeJS.ReadWriteStream;
+
+	// Low-level stream APIs
+	export function getEncoder(encoding: string, options?: Options): EncoderStream;
+
+	export function getDecoder(encoding: string, options?: Options): DecoderStream;
+}
+
+export interface Options {
+    stripBOM?: boolean;
+    addBOM?: boolean;
+    defaultEncoding?: string;
+}
+
+export interface EncoderStream {
+	write(str: string): Buffer;
+	end(): Buffer | undefined;
+}
+
+export interface DecoderStream {
+	write(buf: Buffer): string;
+	end(): string | undefined;
+}

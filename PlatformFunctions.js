@@ -1,10 +1,13 @@
-import { FetchHttpClient } from '../net/FetchHttpClient.js';
-import { SubtleCryptoProvider } from '../crypto/SubtleCryptoProvider.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PlatformFunctions = void 0;
+const FetchHttpClient_js_1 = require("../net/FetchHttpClient.js");
+const SubtleCryptoProvider_js_1 = require("../crypto/SubtleCryptoProvider.js");
 /**
  * Interface encapsulating various utility functions whose
  * implementations depend on the platform / JS runtime.
  */
-export class PlatformFunctions {
+class PlatformFunctions {
     constructor() {
         this._fetchFn = null;
         this._agent = null;
@@ -68,7 +71,7 @@ export class PlatformFunctions {
      * passed, will default to the default `fetch` function in the global scope.
      */
     createFetchHttpClient(fetchFn) {
-        return new FetchHttpClient(fetchFn);
+        return new FetchHttpClient_js_1.FetchHttpClient(fetchFn);
     }
     /**
      * Creates an HTTP client using runtime-specific APIs.
@@ -86,9 +89,10 @@ export class PlatformFunctions {
      * Creates a CryptoProvider which uses the SubtleCrypto interface of the Web Crypto API.
      */
     createSubtleCryptoProvider(subtleCrypto) {
-        return new SubtleCryptoProvider(subtleCrypto);
+        return new SubtleCryptoProvider_js_1.SubtleCryptoProvider(subtleCrypto);
     }
     createDefaultCryptoProvider() {
         throw new Error('createDefaultCryptoProvider not implemented.');
     }
 }
+exports.PlatformFunctions = PlatformFunctions;

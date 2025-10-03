@@ -1,20 +1,23 @@
-import * as crypto from 'crypto';
-import { EventEmitter } from 'events';
-import { NodeCryptoProvider } from '../crypto/NodeCryptoProvider.js';
-import { NodeHttpClient } from '../net/NodeHttpClient.js';
-import { PlatformFunctions } from './PlatformFunctions.js';
-import { StripeError } from '../Error.js';
-import { concat } from '../utils.js';
-import { exec } from 'child_process';
-class StreamProcessingError extends StripeError {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NodePlatformFunctions = void 0;
+const crypto = require("crypto");
+const events_1 = require("events");
+const NodeCryptoProvider_js_1 = require("../crypto/NodeCryptoProvider.js");
+const NodeHttpClient_js_1 = require("../net/NodeHttpClient.js");
+const PlatformFunctions_js_1 = require("./PlatformFunctions.js");
+const Error_js_1 = require("../Error.js");
+const utils_js_1 = require("../utils.js");
+const child_process_1 = require("child_process");
+class StreamProcessingError extends Error_js_1.StripeError {
 }
 /**
  * Specializes WebPlatformFunctions using APIs available in Node.js.
  */
-export class NodePlatformFunctions extends PlatformFunctions {
+class NodePlatformFunctions extends PlatformFunctions_js_1.PlatformFunctions {
     constructor() {
         super();
-        this._exec = exec;
+        this._exec = child_process_1.exec;
         this._UNAME_CACHE = null;
     }
     /** @override */
@@ -76,11 +79,11 @@ export class NodePlatformFunctions extends PlatformFunctions {
         return super.secureCompare(a, b);
     }
     createEmitter() {
-        return new EventEmitter();
+        return new events_1.EventEmitter();
     }
     /** @override */
     tryBufferData(data) {
-        if (!(data.file.data instanceof EventEmitter)) {
+        if (!(data.file.data instanceof events_1.EventEmitter)) {
             return Promise.resolve(data);
         }
         const bufferArray = [];
@@ -92,7 +95,7 @@ export class NodePlatformFunctions extends PlatformFunctions {
                 .once('end', () => {
                 // @ts-ignore
                 const bufferData = Object.assign({}, data);
-                bufferData.file.data = concat(bufferArray);
+                bufferData.file.data = (0, utils_js_1.concat)(bufferArray);
                 resolve(bufferData);
             })
                 .on('error', (err) => {
@@ -105,18 +108,19 @@ export class NodePlatformFunctions extends PlatformFunctions {
     }
     /** @override */
     createNodeHttpClient(agent) {
-        return new NodeHttpClient(agent);
+        return new NodeHttpClient_js_1.NodeHttpClient(agent);
     }
     /** @override */
     createDefaultHttpClient() {
-        return new NodeHttpClient();
+        return new NodeHttpClient_js_1.NodeHttpClient();
     }
     /** @override */
     createNodeCryptoProvider() {
-        return new NodeCryptoProvider();
+        return new NodeCryptoProvider_js_1.NodeCryptoProvider();
     }
     /** @override */
     createDefaultCryptoProvider() {
         return this.createNodeCryptoProvider();
     }
 }
+exports.NodePlatformFunctions = NodePlatformFunctions;

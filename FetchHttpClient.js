@@ -1,5 +1,8 @@
-import { parseHeadersForFetch } from '../utils.js';
-import { HttpClient, HttpClientResponse, } from './HttpClient.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FetchHttpClientResponse = exports.FetchHttpClient = void 0;
+const utils_js_1 = require("../utils.js");
+const HttpClient_js_1 = require("./HttpClient.js");
 /**
  * HTTP client which uses a `fetch` function to issue requests.
  *
@@ -8,7 +11,7 @@ import { HttpClient, HttpClientResponse, } from './HttpClient.js';
  * Fetch API. As an example, this could be the function provided by the
  * node-fetch package (https://github.com/node-fetch/node-fetch).
  */
-export class FetchHttpClient extends HttpClient {
+class FetchHttpClient extends HttpClient_js_1.HttpClient {
     constructor(fetchFn) {
         super();
         // Default to global fetch if available
@@ -39,7 +42,7 @@ export class FetchHttpClient extends HttpClient {
             const timeoutPromise = new Promise((_, reject) => {
                 pendingTimeoutId = setTimeout(() => {
                     pendingTimeoutId = null;
-                    reject(HttpClient.makeTimeoutError());
+                    reject(HttpClient_js_1.HttpClient.makeTimeoutError());
                 }, timeout);
             });
             const fetchPromise = fetchFn(url, init);
@@ -56,7 +59,7 @@ export class FetchHttpClient extends HttpClient {
             const abort = new AbortController();
             let timeoutId = setTimeout(() => {
                 timeoutId = null;
-                abort.abort(HttpClient.makeTimeoutError());
+                abort.abort(HttpClient_js_1.HttpClient.makeTimeoutError());
             }, timeout);
             try {
                 return await fetchFn(url, Object.assign(Object.assign({}, init), { signal: abort.signal }));
@@ -66,7 +69,7 @@ export class FetchHttpClient extends HttpClient {
                 // and instead it always throws an AbortError
                 // We catch this case to normalise all timeout errors
                 if (err.name === 'AbortError') {
-                    throw HttpClient.makeTimeoutError();
+                    throw HttpClient_js_1.HttpClient.makeTimeoutError();
                 }
                 else {
                     throw err;
@@ -95,13 +98,14 @@ export class FetchHttpClient extends HttpClient {
         const body = requestData || (methodHasPayload ? '' : undefined);
         const res = await this._fetchFn(url.toString(), {
             method,
-            headers: parseHeadersForFetch(headers),
+            headers: (0, utils_js_1.parseHeadersForFetch)(headers),
             body: typeof body === 'object' ? JSON.stringify(body) : body,
         }, timeout);
         return new FetchHttpClientResponse(res);
     }
 }
-export class FetchHttpClientResponse extends HttpClientResponse {
+exports.FetchHttpClient = FetchHttpClient;
+class FetchHttpClientResponse extends HttpClient_js_1.HttpClientResponse {
     constructor(res) {
         super(res.status, FetchHttpClientResponse._transformHeadersToObject(res.headers));
         this._res = res;
@@ -135,3 +139,4 @@ export class FetchHttpClientResponse extends HttpClientResponse {
         return headersObj;
     }
 }
+exports.FetchHttpClientResponse = FetchHttpClientResponse;

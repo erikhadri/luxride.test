@@ -1,10 +1,13 @@
-import { CryptoProvider, CryptoProviderOnlySupportsAsyncError, } from './CryptoProvider.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SubtleCryptoProvider = void 0;
+const CryptoProvider_js_1 = require("./CryptoProvider.js");
 /**
  * `CryptoProvider which uses the SubtleCrypto interface of the Web Crypto API.
  *
  * This only supports asynchronous operations.
  */
-export class SubtleCryptoProvider extends CryptoProvider {
+class SubtleCryptoProvider extends CryptoProvider_js_1.CryptoProvider {
     constructor(subtleCrypto) {
         super();
         // If no subtle crypto is interface, default to the global namespace. This
@@ -14,7 +17,7 @@ export class SubtleCryptoProvider extends CryptoProvider {
     }
     /** @override */
     computeHMACSignature(payload, secret) {
-        throw new CryptoProviderOnlySupportsAsyncError('SubtleCryptoProvider cannot be used in a synchronous context.');
+        throw new CryptoProvider_js_1.CryptoProviderOnlySupportsAsyncError('SubtleCryptoProvider cannot be used in a synchronous context.');
     }
     /** @override */
     async computeHMACSignatureAsync(payload, secret) {
@@ -39,6 +42,7 @@ export class SubtleCryptoProvider extends CryptoProvider {
         return new Uint8Array(await this.subtleCrypto.digest('SHA-256', data));
     }
 }
+exports.SubtleCryptoProvider = SubtleCryptoProvider;
 // Cached mapping of byte to hex representation. We do this once to avoid re-
 // computing every time we need to convert the result of a signature to hex.
 const byteHexMapping = new Array(256);

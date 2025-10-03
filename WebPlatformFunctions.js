@@ -1,16 +1,19 @@
-import { PlatformFunctions } from './PlatformFunctions.js';
-import { StripeEmitter } from '../StripeEmitter.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WebPlatformFunctions = void 0;
+const PlatformFunctions_js_1 = require("./PlatformFunctions.js");
+const StripeEmitter_js_1 = require("../StripeEmitter.js");
 /**
  * Specializes WebPlatformFunctions using APIs available in Web workers.
  */
-export class WebPlatformFunctions extends PlatformFunctions {
+class WebPlatformFunctions extends PlatformFunctions_js_1.PlatformFunctions {
     /** @override */
     getUname() {
         return Promise.resolve(null);
     }
     /** @override */
     createEmitter() {
-        return new StripeEmitter();
+        return new StripeEmitter_js_1.StripeEmitter();
     }
     /** @override */
     tryBufferData(data) {
@@ -36,3 +39,4 @@ export class WebPlatformFunctions extends PlatformFunctions {
         return this.createSubtleCryptoProvider();
     }
 }
+exports.WebPlatformFunctions = WebPlatformFunctions;
