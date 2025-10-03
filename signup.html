@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luxride - Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #e4e7eb);
+            color: #333333;
+            overscroll-behavior: none;
+            overflow-x: hidden;
+        }
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: transparent;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #d4af37, #b8972e);
+            transition: all 0.4s ease;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #e6c14b, #d4af37);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333333;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3), 0 0 20px rgba(0, 0, 0, 0.1);
+            border-color: #d4af37;
+        }
+        .form-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .error-toast {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 12px 0;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #dc2626;
+            animation: slideInUp 0.4s ease-out;
+        }
+        header {
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+            color: #666666;
+        }
+        .nav-link:hover {
+            color: #d4af37;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #d4af37;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        #mobile-menu {
+            transform: translateX(100%);
+            background: #ffffff;
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        #mobile-menu.active {
+            transform: translateX(0);
+        }
+        #mobile-menu-backdrop.active {
+            display: block;
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 640px) {
+            .form-container {
+                margin: 10px;
+            }
+        }
+        @media (max-width: 768px) {
+            header {
+                padding: 12px 16px;
+            }
+            #mobile-menu-toggle {
+                padding: 8px;
+            }
+            #mobile-menu {
+                width: 80%;
+                max-width: 280px;
+            }
+            #mobile-menu nav a {
+                font-size: 16px;
+                padding: 12px 16px;
+                border-radius: 8px;
+                color: #333333;
+                transition: background-color 0.2s ease, color 0.2s ease;
+            }
+            #mobile-menu nav a:hover {
+                background-color: rgba(212, 175, 55, 0.2);
+                color: #d4af37;
+            }
+            #mobile-menu-close {
+                padding: 8px;
+            }
+        }
+        @media (min-width: 769px) {
+            #nav-menu {
+                display: flex !important;
+            }
+            #mobile-menu, #mobile-menu-backdrop {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+    <div id="particles-js"></div>
+    <header class="sticky top-0 z-50 w-full">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-2xl font-extrabold text-gray-800 tracking-tight" style="font-family: 'Playfair Display', serif;">Luxride</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="mobile-menu-toggle" class="md:hidden focus:outline-none" aria-label="Toggle navigation menu">
+                    <i class="fas fa-bars text-xl text-gray-800"></i>
+                </button>
+                <nav id="nav-menu" class="hidden md:flex md:items-center md:space-x-6">
+                    <a href="index.html" class="font-medium nav-link text-base">Ride</a>
+                    <a href="triphistory.html" class="font-medium nav-link text-base">Trip History</a>
+                    <a href="inbox.html" class="font-medium nav-link text-base">Inbox</a>
+                    <a href="payments.html" class="font-medium nav-link text-base">Payments</a>
+                    <a href="profile.html" class="font-medium nav-link text-base">Profile</a>
+                    <a href="signup.html" class="font-medium nav-link text-base">Sign Up</a>
+                    <a href="receipt.html" class="font-medium nav-link text-base">Receipt</a>
+                    <a href="book.html" class="font-medium nav-link text-base">Book</a>
+                    <a href="login.html" class="font-medium text-base text-gray-800">Log out</a>
+                </nav>
+            </div>
+        </div>
+        <div id="mobile-menu" class="fixed inset-y-0 right-0 w-64 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 md:hidden">
+            <div class="flex justify-end p-4">
+                <button id="mobile-menu-close" class="focus:outline-none" aria-label="Close navigation menu">
+                    <i class="fas fa-times text-xl text-gray-800"></i>
+                </button>
+            </div>
+            <nav class="flex flex-col items-start p-4 space-y-4">
+                <a href="index.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Ride</a>
+                <a href="triphistory.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Trip History</a>
+                <a href="inbox.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Inbox</a>
+                <a href="payments.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Payments</a>
+                <a href="profile.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Profile</a>
+                <a href="signup.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Sign Up</a>
+                <a href="receipt.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Receipt</a>
+                <a href="book.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Book</a>
+                <a href="login.html" class="font-medium text-base text-gray-800 w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Log out</a>
+            </nav>
+        </div>
+        <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 md:hidden"></div>
+    </header>
+
+    <section class="py-12 w-full flex justify-center">
+        <div class="form-container p-8 max-w-md w-full mx-4">
+            <h2 class="text-3xl font-bold mb-6 text-center" style="font-family: 'Playfair Display', serif;">Join Luxride</h2>
+            <form id="signup-form" class="space-y-4">
+                <div class="relative">
+                    <input type="text" id="name" placeholder="Full Name" class="w-full pl-12 pr-4 py-3 input-field text-sm" required>
+                    <i class="fas fa-user absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                </div>
+                <div class="relative">
+                    <input type="email" id="email" placeholder="Email" class="w-full pl-12 pr-4 py-3 input-field text-sm" required>
+                    <i class="fas fa-envelope absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                </div>
+                <div class="relative">
+                    <input type="tel" id="phone" placeholder="Phone Number" class="w-full pl-12 pr-4 py-3 input-field text-sm" required>
+                    <i class="fas fa-phone absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                </div>
+                <div class="relative">
+                    <input type="password" id="password" placeholder="Password" class="w-full pl-12 pr-4 py-3 input-field text-sm" required>
+                    <i class="fas fa-lock absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                </div>
+                <div class="relative">
+                    <input type="text" id="referral" placeholder="Referral Code (Optional)" class="w-full pl-12 pr-4 py-3 input-field text-sm">
+                    <i class="fas fa-gift absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="terms" class="mr-2" required>
+                    <label for="terms" class="text-sm text-gray-600">I agree to the <a href="about.html" class="text-[#d4af37] hover:underline">Terms of Service</a></label>
+                </div>
+                <button type="submit" class="w-full py-3 btn-primary text-base flex items-center justify-center gap-2">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Sign Up</span>
+                </button>
+                <div class="text-center text-sm text-gray-600">or</div>
+                <button type="button" class="w-full py-3 btn-primary text-base flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-500">
+                    <i class="fab fa-google"></i>
+                    <span>Continue with Google</span>
+                </button>
+                <button type="button" class="w-full py-3 btn-primary text-base flex items-center justify-center gap-2 bg-black hover:bg-gray-800">
+                    <i class="fab fa-apple"></i>
+                    <span>Continue with Apple</span>
+                </button>
+            </form>
+            <div id="form-message" class="mt-4"></div>
+            <p class="text-center text-sm text-gray-600 mt-4">Already have an account? <a href="login.html" class="text-[#d4af37] hover:underline">Log in</a></p>
+        </div>
+    </section>
+
+    <footer class="py-8 w-full">
+        <div class="container mx-auto px-4 max-w-md">
+            <div class="grid grid-cols-1 gap-6 text-center">
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Luxride</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="about.html" class="hover:text-[#d4af37]">About us</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Careers</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Newsroom</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Support</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="help.html" class="hover:text-[#d4af37]">Help Center</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Contact us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Follow us</h4>
+                    <div class="flex space-x-4 justify-center">
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-facebook-f text-lg"></i></a>
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-twitter text-lg"></i></a>
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-instagram text-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-center text-sm text-gray-600">
+                <p>&copy; 2025 Luxride Technologies Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 50, density: { enable: true, value_area: 1000 } },
+                color: { value: ['#d4af37', '#3b82f6', '#ffffff', '#b8972e'] },
+                shape: { type: 'circle', stroke: { width: 2, color: '#d4af37' } },
+                opacity: { value: 0.6, random: true, anim: { enable: true, speed: 1.5, opacity_min: 0.1 } },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: '#d4af37', opacity: 0.4, width: 1 },
+                move: { enable: true, speed: 2, direction: 'none', random: true }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+                modes: { repulse: { distance: 100 }, push: { particles_nb: 4 } }
+            },
+            retina_detect: true
+        });
+
+        const form = document.getElementById('signup-form');
+        const messageContainer = document.getElementById('form-message');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.add('active');
+            mobileMenuBackdrop.classList.add('active');
+            document.body.classList.add('overflow-hidden');
+        });
+
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        mobileMenuBackdrop.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        document.querySelectorAll('#mobile-menu nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                mobileMenuBackdrop.classList.remove('active');
+                document.body.classList.remove('overflow-hidden');
+            });
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const terms = document.getElementById('terms').checked;
+
+            if (!name || !email || !phone || !password || !terms) {
+                messageContainer.innerHTML = '<div class="error-toast">Please fill in all required fields and agree to terms.</div>';
+                return;
+            }
+
+            // Simulate signup (replace with Firebase Auth in production)
+            localStorage.setItem('user', JSON.stringify({ name, email, phone }));
+            messageContainer.innerHTML = '<div class="bg-green-500 text-white p-3 rounded-lg">Sign-up successful! Redirecting...</div>';
+            setTimeout(() => window.location.href = 'profile.html', 1000);
+        });
+    </script>
+</body>
+</html>

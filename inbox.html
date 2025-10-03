@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: http:; connect-src 'self';">
+    <title>Luxride - Inbox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #e4e7eb);
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #d4af37, #b8972e);
+            color: #fff;
+            border-radius: 12px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            transition: all 0.4s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #e6c14b, #d4af37);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .btn-secondary {
+            background: linear-gradient(90deg, #4b5563, #6b7280);
+            color: #fff;
+            border-radius: 12px;
+            transition: all 0.4s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #6b7280, #9ca3af);
+        }
+        .btn-danger {
+            background: linear-gradient(90deg, #dc2626, #b91c1c);
+            color: #fff;
+            border-radius: 12px;
+            transition: all 0.4s ease;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+        .nav-link {
+            position: relative;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #d4af37;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: #d4af37;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .image-container {
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            margin: 10px auto;
+            max-width: 600px;
+            height: 200px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            height: 100%;
+        }
+        .carousel-item {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+        }
+        .carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.4s ease;
+        }
+        .carousel-item img:hover {
+            transform: scale(1.05);
+        }
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+        .carousel-btn {
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .carousel-btn:hover {
+            background: rgba(212, 175, 55, 0.8);
+        }
+        .carousel-dots {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        .carousel-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .carousel-dot.active {
+            background: #d4af37;
+        }
+        .message-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d4af37;
+            transition: all 0.4s ease;
+        }
+        .message-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        .message-card.confirmed { border-left-color: #10b981; }
+        .message-card.cancelled { border-left-color: #ef4444; opacity: 0.7; }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .message-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+        }
+        .vehicle-standard .message-icon { background: linear-gradient(135deg, #10b981, #059669); }
+        .vehicle-premium .message-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .vehicle-suv .message-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .vehicle-xl .message-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .message-title {
+            font-size: 18px;
+            font-weight: 600;
+            font-family: 'Playfair Display', serif;
+        }
+        .message-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-requested { background: rgba(212, 175, 55, 0.1); color: #d4af37; }
+        .status-confirmed { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .status-cancelled { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .message-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .message-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .detail-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .message-time {
+            font-size: 13px;
+            color: #666;
+            text-align: right;
+        }
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .confirm-button, .cancel-button, .call-driver-btn, .details-button {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .confirm-button { background: linear-gradient(135deg, #10b981, #059669); }
+        .cancel-button { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .call-driver-btn { background: linear-gradient(135deg, #d4af37, #b8972e); }
+        .details-button { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .confirm-button:hover, .cancel-button:hover, .call-driver-btn:hover, .details-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .empty-state i { font-size: 48px; color: #d4af37; margin-bottom: 16px; }
+        .empty-state h4 { font-size: 20px; font-family: 'Playfair Display', serif; }
+        .radio-section {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 24px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .radio-button {
+            background: linear-gradient(135deg, #d4af37, #b8972e);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        .radio-button:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #e6c14b, #d4af37);
+        }
+        .search-controls {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .search-controls input, .search-controls select {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .search-controls input:focus, .search-controls select:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+        }
+        .tabs { margin-bottom: 24px; }
+        .tab-btn { padding: 12px 16px; color: #666; }
+        .tab-btn.active { color: #d4af37; border-bottom: 2px solid #d4af37; }
+        #bulk-actions { background: rgba(255, 255, 255, 0.9); border-radius: 12px; padding: 12px; margin-bottom: 16px; }
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; max-width: 400px; }
+        .toast { padding: 16px 20px; border-radius: 12px; color: #fff; margin-bottom: 8px; border-left: 4px solid #d4af37; }
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .toast.info { background: linear-gradient(135deg, #d4af37, #b8972e); }
+        .toast.show { transform: translateX(0); }
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 25%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0.9) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes newNotification { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.02); } 100% { transform: scale(1); opacity: 1; } }
+        #error-boundary { background: rgba(255, 255, 255, 0.9); border-radius: 16px; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: rgba(255, 255, 255, 0.95); border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+        .pagination-btn { padding: 8px 12px; border-radius: 8px; background: linear-gradient(90deg, #d4af37, #b8972e); color: #fff; }
+        .pagination-btn:disabled { background: linear-gradient(90deg, #9ca3af, #6b7280); cursor: not-allowed; }
+        header {
+            background: #ffffff; /* Solid white background for desktop */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        #mobile-menu {
+            transform: translateX(100%);
+            background: #ffffff; /* Solid white background for mobile */
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        #mobile-menu.active {
+            transform: translateX(0);
+        }
+        #mobile-menu-backdrop.active {
+            display: block;
+        }
+        footer { background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), #f5f7fa); }
+        @media (max-width: 640px) {
+            .image-container { height: 120px; }
+            .message-card { padding: 16px; }
+            .message-header { flex-direction: column; align-items: flex-start; }
+            .message-content { grid-template-columns: 1fr; }
+            .message-actions { justify-content: center; }
+            .confirm-button, .cancel-button, .call-driver-btn, .details-button { padding: 6px 12px; font-size: 12px; flex: 1; }
+            #toast-container { bottom: 10px; right: 10px; left: 10px; max-width: none; }
+        }
+        @media (max-width: 768px) {
+            header {
+                padding: 12px 16px;
+            }
+            #mobile-menu-toggle {
+                padding: 8px;
+            }
+            #mobile-menu {
+                width: 80%;
+                max-width: 280px;
+            }
+            #mobile-menu nav a {
+                font-size: 16px;
+                padding: 12px 16px;
+                border-radius: 8px;
+                color: #333333;
+                transition: background-color 0.2s ease, color 0.2s ease;
+            }
+            #mobile-menu nav a:hover {
+                background-color: rgba(212, 175, 55, 0.2);
+                color: #d4af37;
+            }
+            #mobile-menu-close {
+                padding: 8px;
+            }
+        }
+        @media (min-width: 769px) {
+            #nav-menu {
+                display: flex !important;
+            }
+            #mobile-menu, #mobile-menu-backdrop {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+    <div id="particles-js"></div>
+    <div id="error-boundary" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="text-center max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+            <h3 class="text-lg font-semibold mb-2" style="font-family: 'Playfair Display', serif;">Something went wrong</h3>
+            <p class="text-gray-600 mb-6">We couldn't load your messages. Please try refreshing.</p>
+            <button onclick="retryLoadMessages()" class="btn-primary px-6 py-2 rounded-full text-white">Retry</button>
+        </div>
+    </div>
+    <header class="sticky top-0 z-50 w-full">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-2xl font-extrabold text-gray-800 tracking-tight" style="font-family: 'Playfair Display', serif;">Luxride</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="mobile-menu-toggle" class="md:hidden focus:outline-none" aria-label="Toggle navigation menu">
+                    <i class="fas fa-bars text-xl text-gray-800"></i>
+                </button>
+                <nav id="nav-menu" class="hidden md:flex md:items-center md:space-x-6">
+                    <a href="index.html" class="font-medium nav-link text-base">Ride</a>
+                    <a href="triphistory.html" class="font-medium nav-link text-base">Trip History</a>
+                    <a href="inbox.html" class="font-medium nav-link text-base">Inbox</a>
+                    <a href="payments.html" class="font-medium nav-link text-base">Payments</a>
+                    <a href="profile.html" class="font-medium nav-link text-base">Profile</a>
+                    <a href="signup.html" class="font-medium nav-link text-base">Sign Up</a>
+                    <a href="receipt.html" class="font-medium nav-link text-base">Receipt</a>
+                    <a href="book.html" class="font-medium nav-link text-base">Book</a>
+                    <a href="login.html" class="font-medium text-base text-gray-800">Log out</a>
+                </nav>
+            </div>
+        </div>
+        <div id="mobile-menu" class="fixed inset-y-0 right-0 w-64 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 md:hidden">
+            <div class="flex justify-end p-4">
+                <button id="mobile-menu-close" class="focus:outline-none" aria-label="Close navigation menu">
+                    <i class="fas fa-times text-xl text-gray-800"></i>
+                </button>
+            </div>
+            <nav class="flex flex-col items-start p-4 space-y-4">
+                <a href="index.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Ride</a>
+                <a href="triphistory.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Trip History</a>
+                <a href="inbox.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Inbox</a>
+                <a href="payments.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Payments</a>
+                <a href="profile.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Profile</a>
+                <a href="signup.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Sign Up</a>
+                <a href="receipt.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Receipt</a>
+                <a href="book.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Book</a>
+                <a href="login.html" class="font-medium text-base text-gray-800 w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Log out</a>
+            </nav>
+        </div>
+        <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 md:hidden"></div>
+    </header>
+    <div id="toast-container"></div>
+    <div id="message-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex justify-between mb-4">
+                <h3 class="text-xl font-bold" style="font-family: 'Playfair Display', serif;">Ride Details</h3>
+                <button id="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+    <section class="py-12 w-full text-center">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <div class="image-container mt-4">
+                <div class="carousel" id="carousel">
+                    <div class="carousel-item"><img src="https://alphazug.com/wp-content/uploads/2020/11/800px-Rolls-Royce_Phantom_VIII_Genf_2019_1Y7A5148.jpg" alt="Vehicle 1"></div>
+                    <div class="carousel-item"><img src="https://grandex.de/wp-content/uploads/2025/02/1732025731_a2ffe1f614e25c297f73-17.jpg" alt="Vehicle 2"></div>
+                    <div class="carousel-item"><img src="https://media.istockphoto.com/id/1348551471/photo/night-photo-of-a-cadillac-escalade-luxury-suv-limo-used-for-uber-and-lyft.jpg?s=612x612&w=0&k=20&c=o6z49qXSxzjUm6JR8ml2QQNxs1E1oBgJOktZwYAWkZo=" alt="Vehicle 3"></div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-btn" id="prev-btn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="carousel-btn" id="next-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="carousel-dots" id="carousel-dots">
+                    <span class="carousel-dot active"></span>
+                    <span class="carousel-dot"></span>
+                    <span class="carousel-dot"></span>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold mb-3" style="font-family: 'Playfair Display', serif;">Your Inbox</h3>
+            <p class="text-gray-600 mb-6 text-sm">Manage your ride requests and track your trips</p>
+            <div class="search-controls">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-[#d4af37]"></i>
+                        <input type="text" id="search-input" placeholder="Search by location, date, or vehicle..." class="w-full pl-10 pr-4 py-2">
+                    </div>
+                    <select id="status-filter" class="px-3 py-2">
+                        <option value="">All Status</option>
+                        <option value="requested">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <select id="sort-filter" class="px-3 py-2">
+                        <option value="date-desc">Date (Newest First)</option>
+                        <option value="date-asc">Date (Oldest First)</option>
+                        <option value="status">Status</option>
+                    </select>
+                    <button id="clear-filters" class="btn-secondary px-4 py-2 text-sm"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="tabs">
+                <div class="flex border-b">
+                    <button class="tab-btn px-4 py-2 text-sm active" data-tab="all">All <span id="all-count" class="ml-1 bg-[#d4af37] text-white px-2 py-1 rounded-full text-xs">0</span></button>
+                    <button class="tab-btn px-4 py-2 text-sm" data-tab="upcoming">Upcoming <span id="upcoming-count" class="ml-1 bg-[#10b981] text-white px-2 py-1 rounded-full text-xs">0</span></button>
+                    <button class="tab-btn px-4 py-2 text-sm" data-tab="past">Past <span id="past-count" class="ml-1 bg-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs">0</span></button>
+                </div>
+            </div>
+            <div id="bulk-actions" class="hidden">
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="select-all" class="message-checkbox">
+                    <span id="selected-count" class="text-sm text-[#d4af37]">0 selected</span>
+                    <button id="archive-selected" class="btn-primary px-3 py-1 text-sm"><i class="fas fa-archive mr-1"></i>Archive</button>
+                    <button id="delete-selected" class="btn-danger px-3 py-1 text-sm"><i class="fas fa-trash mr-1"></i>Delete</button>
+                    <button id="clear-selection" class="text-sm text-[#d4af37]">Clear selection</button>
+                </div>
+            </div>
+            <div id="loading-skeleton" class="space-y-4 hidden">
+                <div class="message-card animate-pulse">
+                    <div class="message-header">
+                        <div class="message-icon skeleton rounded-full"></div>
+                        <div class="flex-1 ml-4 space-y-2">
+                            <div class="h-4 skeleton rounded w-3/4"></div>
+                            <div class="h-3 skeleton rounded w-1/2"></div>
+                        </div>
+                        <div class="h-6 w-20 skeleton rounded-full"></div>
+                    </div>
+                    <div class="message-content">
+                        <div class="space-y-2">
+                            <div class="h-3 skeleton rounded w-3/4"></div>
+                            <div class="h-3 skeleton rounded w-2/3"></div>
+                            <div class="h-3 skeleton rounded w-1/2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="inbox-messages" class="space-y-4 mb-8"></div>
+            <div id="pagination" class="pagination hidden">
+                <button id="prev-page" class="pagination-btn" disabled>Previous</button>
+                <span id="page-info" class="text-sm text-gray-600"></span>
+                <button id="next-page" class="pagination-btn">Next</button>
+            </div>
+            <div id="empty-state" class="empty-state hidden">
+                <i class="fas fa-inbox"></i>
+                <h4>No ride requests yet</h4>
+                <p class="text-sm">Book your first ride from the Ride page.</p>
+                <a href="index.html" class="btn-primary mt-4 px-6 py-2 rounded-full">Book a Ride</a>
+            </div>
+            <div id="archive-section" class="hidden">
+                <div class="flex justify-between mb-4">
+                    <h4 class="text-lg font-semibold" style="font-family: 'Playfair Display', serif;">Archived Messages</h4>
+                    <button id="toggle-archive" class="text-sm text-[#d4af37]"><i class="fas fa-chevron-down"></i> Show</button>
+                </div>
+                <div id="archived-messages" class="space-y-4 hidden"></div>
+            </div>
+            <div class="radio-section">
+                <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Support Contact</h4>
+                <div class="radio-button" onclick="window.location.href='tel:+1-800-555-1234'"><i class="fas fa-phone"></i> Call Support</div>
+                <div class="image-container mt-4">
+                    <div class="carousel" id="support-carousel">
+                        <div class="carousel-item"><img src="https://alphazug.com/wp-content/uploads/2020/11/800px-Rolls-Royce_Phantom_VIII_Genf_2019_1Y7A5148.jpg" alt="Vehicle 1"></div>
+                        <div class="carousel-item"><img src="https://grandex.de/wp-content/uploads/2025/02/1732025731_a2ffe1f614e25c297f73-17.jpg" alt="Vehicle 2"></div>
+                        <div class="carousel-item"><img src="https://media.istockphoto.com/id/1348551471/photo/night-photo-of-a-cadillac-escalade-luxury-suv-limo-used-for-uber-and-lyft.jpg?s=612x612&w=0&k=20&c=o6z49qXSxzjUm6JR8ml2QQNxs1E1oBgJOktZwYAWkZo=" alt="Vehicle 3"></div>
+                    </div>
+                    <div class="carousel-controls">
+                        <button class="carousel-btn" id="support-prev-btn"><i class="fas fa-chevron-left"></i></button>
+                        <button class="carousel-btn" id="support-next-btn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="carousel-dots" id="support-carousel-dots">
+                        <span class="carousel-dot active"></span>
+                        <span class="carousel-dot"></span>
+                        <span class="carousel-dot"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="py-8 w-full">
+        <div class="container mx-auto px-4 max-w-md">
+            <div class="grid grid-cols-1 gap-6 text-center">
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Luxride</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-[#d4af37]">About us</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Careers</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Newsroom</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Support</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-[#d4af37]">Help Center</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Contact us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Follow us</h4>
+                    <div class="flex space-x-4 justify-center">
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-facebook-f text-lg"></i></a>
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-twitter text-lg"></i></a>
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-instagram text-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-center text-sm text-gray-600">
+                <p>&copy; 2025 Luxride Technologies Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 50, density: { enable: true, value_area: 1000 } },
+                color: { value: ['#d4af37', '#3b82f6', '#fff', '#b8972e'] },
+                shape: { type: 'circle', stroke: { width: 2, color: '#d4af37' } },
+                opacity: { value: 0.6, random: true, anim: { enable: true, speed: 1.5, opacity_min: 0.2 } },
+                size: { value: 20, random: true, anim: { enable: true, speed: 5, size_min: 5 } },
+                line_linked: { enable: true, distance: 150, color: '#d4af37', opacity: 0.3, width: 1 },
+                move: { enable: true, speed: 4, direction: 'none', random: true, out_mode: 'bounce' }
+            },
+            interactivity: {
+                events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' }, resize: true },
+                modes: { grab: { distance: 200, line_linked: { opacity: 0.5 } }, push: { particles_nb: 3 } }
+            },
+            retina_detect: true
+        });
+
+        const carousel = document.getElementById('carousel');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const dots = document.querySelectorAll('#carousel-dots .carousel-dot');
+        let currentIndex = 0;
+        const totalItems = document.querySelectorAll('#carousel .carousel-item').length;
+        function updateCarousel() {
+            carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
+        }
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+            updateCarousel();
+        });
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % totalItems;
+            updateCarousel();
+        });
+        dots.forEach((dot, i) => dot.addEventListener('click', () => { currentIndex = i; updateCarousel(); }));
+        let autoSlideInterval = setInterval(() => { currentIndex = (currentIndex + 1) % totalItems; updateCarousel(); }, 5000);
+        document.querySelector('.image-container').addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+        document.querySelector('.image-container').addEventListener('mouseleave', () => autoSlideInterval = setInterval(() => { currentIndex = (currentIndex + 1) % totalItems; updateCarousel(); }, 5000));
+
+        const supportCarousel = document.getElementById('support-carousel');
+        const supportPrevBtn = document.getElementById('support-prev-btn');
+        const supportNextBtn = document.getElementById('support-next-btn');
+        const supportDots = document.querySelectorAll('#support-carousel-dots .carousel-dot');
+        let supportCurrentIndex = 0;
+        const supportTotalItems = document.querySelectorAll('#support-carousel .carousel-item').length;
+        function updateSupportCarousel() {
+            supportCarousel.style.transform = `translateX(-${supportCurrentIndex * 100}%)`;
+            supportDots.forEach((dot, i) => dot.classList.toggle('active', i === supportCurrentIndex));
+        }
+        supportPrevBtn.addEventListener('click', () => {
+            supportCurrentIndex = (supportCurrentIndex - 1 + supportTotalItems) % supportTotalItems;
+            updateSupportCarousel();
+        });
+        supportNextBtn.addEventListener('click', () => {
+            supportCurrentIndex = (supportCurrentIndex + 1) % supportTotalItems;
+            updateSupportCarousel();
+        });
+        supportDots.forEach((dot, i) => dot.addEventListener('click', () => { supportCurrentIndex = i; updateSupportCarousel(); }));
+        let autoSlideSupportInterval = setInterval(() => { supportCurrentIndex = (supportCurrentIndex + 1) % supportTotalItems; updateSupportCarousel(); }, 5000);
+        document.querySelector('.radio-section .image-container').addEventListener('mouseenter', () => clearInterval(autoSlideSupportInterval));
+        document.querySelector('.radio-section .image-container').addEventListener('mouseleave', () => autoSlideSupportInterval = setInterval(() => { supportCurrentIndex = (supportCurrentIndex + 1) % supportTotalItems; updateSupportCarousel(); }, 5000));
+
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.add('active');
+            mobileMenuBackdrop.classList.add('active');
+            document.body.classList.add('overflow-hidden');
+        });
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.classList.remove('overflow-hidden');
+        });
+        mobileMenuBackdrop.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.classList.remove('overflow-hidden');
+        });
+        document.querySelectorAll('#mobile-menu nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                mobileMenuBackdrop.classList.remove('active');
+                document.body.classList.remove('overflow-hidden');
+            });
+        });
+
+        class StorageManager {
+            static setItem(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                    return true;
+                } catch {
+                    sessionStorage.setItem(key, JSON.stringify(value));
+                    return false;
+                }
+            }
+            static getItem(key) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : null;
+                } catch {
+                    const item = sessionStorage.getItem(key);
+                    return item ? JSON.parse(item) : null;
+                }
+            }
+        }
+
+        function sanitizeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), wait);
+            };
+        }
+
+        class Toast {
+            static show(message, type = 'info', duration = 4000) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type} show`;
+                toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} icon"></i><span>${sanitizeHTML(message)}</span><i class="fas fa-times close" onclick="this.parentElement.remove()"></i>`;
+                container.appendChild(toast);
+                setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, duration);
+            }
+            static success(message) { this.show(message, 'success'); }
+            static error(message) { this.show(message, 'error'); }
+            static warning(message) { this.show(message, 'warning'); }
+            static info(message) { this.show(message, 'info'); }
+        }
+
+        class UserManager {
+            static getUser() { return StorageManager.getItem('user') || { name: 'Guest', isAuthenticated: false }; }
+            static setUser(user) { StorageManager.setItem('user', user); updateUserProfile(); }
+            static logout() {
+                StorageManager.setItem('user', { name: 'Guest', isAuthenticated: false });
+                Toast.info('Logged out successfully');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function updateUserProfile() {
+            const user = UserManager.getUser();
+            const loginLink = document.querySelector('#nav-menu a[href="login.html"]');
+            const mobileLoginLink = document.querySelector('#mobile-menu nav a[href="login.html"]');
+            loginLink.textContent = user.isAuthenticated ? `Logout (${user.name})` : 'Log out';
+            mobileLoginLink.textContent = user.isAuthenticated ? `Logout (${user.name})` : 'Log out';
+        }
+
+        let currentFilter = StorageManager.getItem('inboxFilter') || { search: '', status: '', sort: 'date-desc', tab: 'all', page: 1 };
+        let selectedMessages = new Set();
+        const ITEMS_PER_PAGE = 10;
+
+        const searchInput = document.getElementById('search-input');
+        searchInput.value = currentFilter.search;
+        searchInput.addEventListener('input', debounce((e) => {
+            currentFilter.search = e.target.value.toLowerCase();
+            currentFilter.page = 1;
+            StorageManager.setItem('inboxFilter', currentFilter);
+            applyFilters();
+        }, 300));
+
+        const statusFilter = document.getElementById('status-filter');
+        statusFilter.value = currentFilter.status;
+        statusFilter.addEventListener('change', (e) => {
+            currentFilter.status = e.target.value;
+            currentFilter.page = 1;
+            StorageManager.setItem('inboxFilter', currentFilter);
+            applyFilters();
+        });
+
+        const sortFilter = document.getElementById('sort-filter');
+        sortFilter.value = currentFilter.sort;
+        sortFilter.addEventListener('change', (e) => {
+            currentFilter.sort = e.target.value;
+            currentFilter.page = 1;
+            StorageManager.setItem('inboxFilter', currentFilter);
+            applyFilters();
+        });
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter.tab = btn.dataset.tab;
+                currentFilter.page = 1;
+                StorageManager.setItem('inboxFilter', currentFilter);
+                applyFilters();
+        });
+        });
+
+        document.getElementById('clear-filters').addEventListener('click', () => {
+            currentFilter = { search: '', status: '', sort: 'date-desc', tab: 'all', page: 1 };
+            searchInput.value = '';
+            statusFilter.value = '';
+            sortFilter.value = 'date-desc';
+            document.querySelector('[data-tab="all"]').click();
+            StorageManager.setItem('inboxFilter', currentFilter);
+            applyFilters();
+        });
+
+        document.getElementById('select-all').addEventListener('change', (e) => {
+            const displayedMessages = getFilteredMessages();
+            const start = (currentFilter.page - 1) * ITEMS_PER_PAGE;
+            const end = Math.min(start + ITEMS_PER_PAGE, displayedMessages.length);
+            if (e.target.checked) {
+                for (let i = start; i < end; i++) {
+                    const globalIndex = messages.findIndex(m => m.id === displayedMessages[i].id);
+                    if (globalIndex !== -1) selectedMessages.add(globalIndex);
+                }
+            } else {
+                selectedMessages.clear();
+            }
+            updateBulkActions();
+            displayInboxMessages();
+        });
+
+        document.getElementById('archive-selected').addEventListener('click', () => {
+            const archived = [];
+            selectedMessages.forEach(index => {
+                if (messages[index]) {
+                    messages[index].archived = true;
+                    archived.push(messages[index]);
+                }
+            });
+            const existingArchived = StorageManager.getItem('archivedRides') || [];
+            StorageManager.setItem('archivedRides', [...existingArchived, ...archived]);
+            messages = messages.filter((_, index) => !selectedMessages.has(index));
+            selectedMessages.clear();
+            StorageManager.setItem('rideNotifications', messages);
+            displayInboxMessages();
+            updateBulkActions();
+            Toast.success(`${archived.length} ride(s) archived`);
+        });
+
+        document.getElementById('delete-selected').addEventListener('click', () => {
+            if (confirm(`Are you sure you want to delete ${selectedMessages.size} ride(s)?`)) {
+                const deletedCount = selectedMessages.size;
+                messages = messages.filter((_, index) => !selectedMessages.has(index));
+                selectedMessages.clear();
+                StorageManager.setItem('rideNotifications', messages);
+                displayInboxMessages();
+                updateBulkActions();
+                Toast.success(`${deletedCount} ride(s) deleted`);
+            }
+        });
+
+        document.getElementById('clear-selection').addEventListener('click', () => {
+            selectedMessages.clear();
+            document.getElementById('select-all').checked = false;
+            updateBulkActions();
+            displayInboxMessages();
+        });
+
+        document.getElementById('toggle-archive').addEventListener('click', () => {
+            const archivedMessages = document.getElementById('archived-messages');
+            const toggleBtn = document.getElementById('toggle-archive');
+            const isHidden = archivedMessages.classList.contains('hidden');
+            archivedMessages.classList.toggle('hidden');
+            toggleBtn.innerHTML = isHidden ? '<i class="fas fa-chevron-up"></i> Hide' : '<i class="fas fa-chevron-down"></i> Show';
+            if (isHidden) displayArchivedMessages();
+        });
+
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentFilter.page > 1) {
+                currentFilter.page--;
+                StorageManager.setItem('inboxFilter', currentFilter);
+                applyFilters();
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', () => {
+            const totalPages = Math.ceil(getFilteredMessages().length / ITEMS_PER_PAGE);
+            if (currentFilter.page < totalPages) {
+                currentFilter.page++;
+                StorageManager.setItem('inboxFilter', currentFilter);
+                applyFilters();
+            }
+        });
+
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('message-modal').classList.add('hidden');
+        });
+
+        let messages = StorageManager.getItem('rideNotifications') || [];
+
+        function validateMessage(message) {
+            return message && message.id && message.timestamp && message.pickup && message.destination && message.vehicleInfo && message.vehicleInfo.name && message.vehicleInfo.fullName && message.vehicleInfo.price && message.vehicleInfo.capacity;
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffInHours = (now - date) / (1000 * 60 * 60);
+            if (diffInHours < 24) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' Today';
+            if (diffInHours < 168) return date.toLocaleDateString('en-US', { weekday: 'short' }) + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getStatusClass(status) {
+            return status === 'confirmed' ? 'status-confirmed' : status === 'cancelled' ? 'status-cancelled' : 'status-requested';
+        }
+
+        function getStatusText(status) {
+            return status === 'confirmed' ? 'Confirmed' : status === 'cancelled' ? 'Cancelled' : 'Pending';
+        }
+
+        function addRide(rideData) {
+            try {
+                if (!validateMessage(rideData)) throw new Error('Invalid ride data');
+                rideData.id = 'ride_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                rideData.timestamp = new Date().toISOString();
+                rideData.status = 'requested';
+                rideData.archived = false;
+                messages.push(rideData);
+                StorageManager.setItem('rideNotifications', messages);
+                Toast.success(`Ride booked: ${rideData.vehicleInfo.fullName} from ${rideData.pickup} to ${rideData.destination}`);
+                applyFilters();
+            } catch (error) {
+                Toast.error('Failed to book ride.');
+                console.error('Add ride error:', error);
+            }
+        }
+
+        function confirmRide(index) {
+            try {
+                if (!messages[index]) throw new Error('Message not found');
+                messages[index].status = 'confirmed';
+                messages[index].timestamp = new Date().toISOString();
+                StorageManager.setItem('rideNotifications', messages);
+                Toast.success('Ride confirmed!');
+                applyFilters();
+            } catch (error) {
+                Toast.error('Failed to confirm ride.');
+                console.error('Confirm ride error:', error);
+            }
+        }
+
+        function cancelRide(index) {
+            if (!messages[index]) return Toast.error('Message not found');
+            if (confirm('Are you sure you want to cancel this ride?')) {
+                try {
+                    messages[index].status = 'cancelled';
+                    messages[index].timestamp = new Date().toISOString();
+                    StorageManager.setItem('rideNotifications', messages);
+                    Toast.warning('Ride cancelled');
+                    applyFilters();
+                } catch (error) {
+                    Toast.error('Failed to cancel ride.');
+                    console.error('Cancel ride error:', error);
+                }
+            }
+        }
+
+        function callDriver(index) {
+            if (!messages[index]) return Toast.error('Message not found');
+            window.location.href = `tel:+1-800-555-1234`;
+        }
+
+        function showMessageDetails(index) {
+            if (!messages[index]) return Toast.error('Message not found');
+            const message = messages[index];
+            document.getElementById('modal-content').innerHTML = `
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold">${sanitizeHTML(message.vehicleInfo.fullName)}</h4>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="message-detail"><div class="detail-label">Pickup</div><div class="detail-value">${sanitizeHTML(message.pickup)}</div></div>
+                        <div class="message-detail"><div class="detail-label">Destination</div><div class="detail-value">${sanitizeHTML(message.destination)}</div></div>
+                        <div class="message-detail"><div class="detail-label">Rate</div><div class="detail-value">$${parseFloat(message.vehicleInfo.price).toFixed(2)}</div></div>
+                        <div class="message-detail"><div class="detail-label">Capacity</div><div class="detail-value">${message.vehicleInfo.capacity} passengers</div></div>
+                        ${message.date ? `<div class="message-detail"><div class="detail-label">Scheduled</div><div class="detail-value">${sanitizeHTML(message.date)}</div></div>` : ''}
+                        <div class="message-detail"><div class="detail-label">ETA</div><div class="detail-value">${sanitizeHTML(message.vehicleInfo.time)}</div></div>
+                        <div class="message-detail"><div class="detail-label">Status</div><div class="detail-value">${getStatusText(message.status || 'requested')}</div></div>
+                        <div class="message-detail"><div class="detail-label">Requested</div><div class="detail-value">${formatDate(message.timestamp)}</div></div>
+                    </div>
+                    <div class="flex justify-end gap-4 mt-4">
+                        ${message.status === 'requested' ? `
+                        <button onclick="confirmRide(${index})" class="confirm-button"><i class="fas fa-check-circle mr-1"></i> Confirm</button>
+                        <button onclick="cancelRide(${index})" class="cancel-button"><i class="fas fa-times-circle mr-1"></i> Cancel</button>` : ''}
+                        <button onclick="callDriver(${index})" class="call-driver-btn"><i class="fas fa-phone mr-1"></i> Call Driver</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('message-modal').classList.remove('hidden');
+        }
+
+        function renderMessageCard(container, message, index) {
+            const status = message.status || 'requested';
+            const statusClass = getStatusClass(status);
+            const statusText = getStatusText(status);
+            const isNew = (new Date() - new Date(message.timestamp)) / (1000 * 60 * 60) < 24;
+            const vehicleClass = message.vehicleInfo.name.toLowerCase();
+            const messageCard = document.createElement('div');
+            messageCard.className = `message-card ${status} ${isNew ? 'new' : ''}`;
+            messageCard.innerHTML = `
+                <input type="checkbox" class="message-checkbox" ${selectedMessages.has(index) ? 'checked' : ''} onchange="toggleSelection(${index}, this.checked)">
+                <div class="message-header">
+                    <div class="message-icon vehicle-${vehicleClass}"><i class="fas fa-car"></i></div>
+                    <div class="flex-1 ml-4">
+                        <h4 class="message-title">${sanitizeHTML(message.vehicleInfo.fullName)}</h4>
+                        <p class="text-sm text-gray-600">${sanitizeHTML(message.pickup)} to ${sanitizeHTML(message.destination)}</p>
+                    </div>
+                    <span class="message-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="message-content">
+                    <div class="message-detail"><div class="detail-label">Pickup</div><div class="detail-value">${sanitizeHTML(message.pickup)}</div></div>
+                    <div class="message-detail"><div class="detail-label">Destination</div><div class="detail-value">${sanitizeHTML(message.destination)}</div></div>
+                    <div class="message-detail"><div class="detail-label">Rate</div><div class="detail-value">$${parseFloat(message.vehicleInfo.price).toFixed(2)}</div></div>
+                    <div class="message-detail"><div class="detail-label">Capacity</div><div class="detail-value">${message.vehicleInfo.capacity} passengers</div></div>
+                    ${message.date ? `<div class="message-detail"><div class="detail-label">Scheduled</div><div class="detail-value">${sanitizeHTML(message.date)}</div></div>` : ''}
+                    <div class="message-detail"><div class="detail-label">ETA</div><div class="detail-value">${sanitizeHTML(message.vehicleInfo.time)}</div></div>
+                </div>
+                <div class="message-time">${formatDate(message.timestamp)}</div>
+                <div class="message-actions">
+                    ${status === 'requested' ? `
+                    <button onclick="confirmRide(${index})" class="confirm-button"><i class="fas fa-check-circle mr-1"></i> Confirm</button>
+                    <button onclick="cancelRide(${index})" class="cancel-button"><i class="fas fa-times-circle mr-1"></i> Cancel</button>` : ''}
+                    <button onclick="callDriver(${index})" class="call-driver-btn"><i class="fas fa-phone mr-1"></i> Call Driver</button>
+                    <button onclick="showMessageDetails(${index})" class="details-button"><i class="fas fa-info-circle mr-1"></i> Details</button>
+                </div>
+            `;
+            container.appendChild(messageCard);
+        }
+
+        function getFilteredMessages() {
+            let filtered = messages.filter(m => !m.archived);
+            if (currentFilter.search) {
+                filtered = filtered.filter(m => m.pickup.toLowerCase().includes(currentFilter.search) || m.destination.toLowerCase().includes(currentFilter.search) || m.vehicleInfo.fullName.toLowerCase().includes(currentFilter.search));
+            }
+            if (currentFilter.status) filtered = filtered.filter(m => m.status === currentFilter.status);
+            if (currentFilter.tab === 'upcoming') filtered = filtered.filter(m => new Date(m.date || m.timestamp) > new Date());
+            if (currentFilter.tab === 'past') filtered = filtered.filter(m => new Date(m.date || m.timestamp) <= new Date());
+            if (currentFilter.sort === 'date-desc') filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            if (currentFilter.sort === 'date-asc') filtered.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            if (currentFilter.sort === 'status') filtered.sort((a, b) => (a.status || 'requested').localeCompare(b.status || 'requested'));
+            return filtered;
+        }
+
+        function updateBulkActions() {
+            const bulkActions = document.getElementById('bulk-actions');
+            const selectedCount = document.getElementById('selected-count');
+            bulkActions.classList.toggle('hidden', selectedMessages.size === 0);
+            selectedCount.textContent = `${selectedMessages.size} selected`;
+            document.getElementById('select-all').checked = selectedMessages.size === Math.min(getFilteredMessages().length - (currentFilter.page - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE);
+        }
+
+        function displayInboxMessages() {
+            const container = document.getElementById('inbox-messages');
+            const emptyState = document.getElementById('empty-state');
+            const pagination = document.getElementById('pagination');
+            const filteredMessages = getFilteredMessages();
+            container.innerHTML = '';
+            if (filteredMessages.length === 0) {
+                emptyState.classList.remove('hidden');
+                pagination.classList.add('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+            const start = (currentFilter.page - 1) * ITEMS_PER_PAGE;
+            const end = Math.min(start + ITEMS_PER_PAGE, filteredMessages.length);
+            for (let i = start; i < end; i++) {
+                const globalIndex = messages.findIndex(m => m.id === filteredMessages[i].id);
+                if (globalIndex !== -1) renderMessageCard(container, filteredMessages[i], globalIndex);
+            }
+            const totalPages = Math.ceil(filteredMessages.length / ITEMS_PER_PAGE);
+            document.getElementById('page-info').textContent = `Page ${currentFilter.page} of ${totalPages}`;
+            document.getElementById('prev-page').disabled = currentFilter.page === 1;
+            document.getElementById('next-page').disabled = currentFilter.page === totalPages;
+            pagination.classList.toggle('hidden', totalPages <= 1);
+            document.getElementById('all-count').textContent = messages.filter(m => !m.archived).length;
+            document.getElementById('upcoming-count').textContent = messages.filter(m => !m.archived && new Date(m.date || m.timestamp) > new Date()).length;
+            document.getElementById('past-count').textContent = messages.filter(m => !m.archived && new Date(m.date || m.timestamp) <= new Date()).length;
+        }
+
+        function displayArchivedMessages() {
+            const archivedMessages = StorageManager.getItem('archivedRides') || [];
+            const container = document.getElementById('archived-messages');
+            container.innerHTML = '';
+            if (archivedMessages.length === 0) {
+                container.innerHTML = '<p class="text-gray-600 text-center">No archived messages.</p>';
+                return;
+            }
+            archivedMessages.forEach((message, index) => renderMessageCard(container, message, index));
+        }
+
+        function applyFilters() {
+            displayInboxMessages();
+            updateBulkActions();
+        }
+
+        function toggleSelection(index, checked) {
+            if (checked) selectedMessages.add(index);
+            else selectedMessages.delete(index);
+            updateBulkActions();
+            displayInboxMessages();
+        }
+
+        function retryLoadMessages() {
+            document.getElementById('error-boundary').classList.add('hidden');
+            applyFilters();
+        }
+
+        applyFilters();
+        updateUserProfile();
+    </script>
+</body>
+</html>

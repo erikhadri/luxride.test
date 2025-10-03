@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luxride - Book a Ride</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #e4e7eb);
+            color: #333333;
+            overscroll-behavior: none;
+            overflow-x: hidden;
+        }
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: transparent;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #d4af37, #b8972e);
+            transition: all 0.4s ease;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #e6c14b, #d4af37);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .btn-secondary {
+            background: linear-gradient(90deg, #4b5563, #6b7280);
+            transition: all 0.4s ease;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #6b7280, #9ca3af);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333333;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3), 0 0 20px rgba(0, 0, 0, 0.1);
+            border-color: #d4af37;
+        }
+        .form-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .map-container {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .leaflet-container {
+            border-radius: 12px !important;
+            height: 100%;
+            width: 100%;
+        }
+        .vehicle-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .vehicle-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .vehicle-card.selected {
+            border: 2px solid #d4af37;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        .estimate-breakdown {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+            color: #666666;
+        }
+        .nav-link:hover {
+            color: #d4af37;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #d4af37;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        #mobile-menu {
+            transform: translateX(100%);
+            background: #ffffff;
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        #mobile-menu.active {
+            transform: translateX(0);
+        }
+        #mobile-menu-backdrop.active {
+            display: block;
+        }
+        #mobile-menu nav a {
+            font-size: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #333333;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        #mobile-menu nav a:hover {
+            background-color: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+        }
+        #mobile-menu-close {
+            padding: 8px;
+        }
+        .error-toast {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 12px 0;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #dc2626;
+            animation: slideInUp 0.4s ease-out;
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            min-width: 320px;
+            padding: 18px 24px;
+            border-radius: 12px;
+            color: #ffffff;
+            font-weight: 500;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1), 0 8px 25px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.4s ease-out, opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid #d4af37;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .toast.info { background: linear-gradient(135deg, #d4af37, #b8972e); }
+        .modal {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        .favorite-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 640px) {
+            .form-container {
+                margin: 10px;
+            }
+            .map-container {
+                height: 200px;
+            }
+            .toast {
+                min-width: auto;
+                right: 12px;
+                left: 12px;
+                padding: 14px 18px;
+            }
+        }
+        @media (max-width: 768px) {
+            header {
+                padding: 12px 16px;
+            }
+            #mobile-menu-toggle {
+                padding: 8px;
+            }
+            #mobile-menu {
+                width: 80%;
+                max-width: 280px;
+            }
+        }
+        @media (min-width: 769px) {
+            #nav-menu {
+                display: flex !important;
+            }
+            #mobile-menu, #mobile-menu-backdrop {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+    <div id="particles-js"></div>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">Confirm Booking</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to book this ride?</p>
+            <div class="flex justify-end gap-4">
+                <button id="cancel-confirm" class="px-4 py-2 text-sm rounded-full bg-gray-200 text-gray-800" aria-label="Cancel booking">Cancel</button>
+                <button id="confirm-book" class="px-4 py-2 text-sm rounded-full btn-primary" aria-label="Confirm booking">Book</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 w-full">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-2xl font-extrabold text-gray-800 tracking-tight" style="font-family: 'Playfair Display', serif;">Luxride</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="mobile-menu-toggle" class="md:hidden focus:outline-none" aria-label="Toggle navigation menu">
+                    <i class="fas fa-bars text-xl text-gray-800"></i>
+                </button>
+                <nav id="nav-menu" class="hidden md:flex md:items-center md:space-x-6">
+                    <a href="index.html" class="font-medium nav-link text-base">Ride</a>
+                    <a href="triphistory.html" class="font-medium nav-link text-base">Trip History</a>
+                    <a href="inbox.html" class="font-medium nav-link text-base">Inbox</a>
+                    <a href="payments.html" class="font-medium nav-link text-base">Payments</a>
+                    <a href="profile.html" class="font-medium nav-link text-base">Profile</a>
+                    <a href="signup.html" class="font-medium nav-link text-base">Sign Up</a>
+                    <a href="receipt.html" class="font-medium nav-link text-base">Receipt</a>
+                    <a href="book.html" class="font-medium nav-link text-base">Book</a>
+                    <a href="login.html" class="font-medium text-base text-gray-800">Log out</a>
+                </nav>
+            </div>
+        </div>
+        <div id="mobile-menu" class="fixed inset-y-0 right-0 w-64 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 md:hidden">
+            <div class="flex justify-end p-4">
+                <button id="mobile-menu-close" class="focus:outline-none" aria-label="Close navigation menu">
+                    <i class="fas fa-times text-xl text-gray-800"></i>
+                </button>
+            </div>
+            <nav class="flex flex-col items-start p-4 space-y-4">
+                <a href="index.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Ride</a>
+                <a href="triphistory.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Trip History</a>
+                <a href="inbox.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Inbox</a>
+                <a href="payments.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Payments</a>
+                <a href="profile.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Profile</a>
+                <a href="signup.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Sign Up</a>
+                <a href="receipt.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Receipt</a>
+                <a href="book.html" class="font-medium nav-link text-base w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Book</a>
+                <a href="login.html" class="font-medium text-base text-gray-800 w-full py-2 px-4 rounded-lg hover:bg-[rgba(212,175,55,0.2)]">Log out</a>
+            </nav>
+        </div>
+        <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 md:hidden"></div>
+    </header>
+
+    <section class="py-12 w-full flex justify-center">
+        <div class="form-container p-8 max-w-3xl w-full mx-4">
+            <h2 class="text-3xl font-bold mb-6 text-center" style="font-family: 'Playfair Display', serif;">Book Your Ride</h2>
+            <p class="text-center text-gray-600 mb-8">Choose your perfect vehicle and get on the road in minutes. Real-time estimates and smart suggestions.</p>
+            <form id="booking-form" class="space-y-6">
+                <div class="relative">
+                    <input type="text" id="pickup" placeholder="Pickup Location (e.g., 123 Main St, City)" class="w-full pl-12 input-field text-sm" required>
+                    <i class="fas fa-map-marker-alt absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                    <button type="button" id="geolocate-btn" class="absolute top-1/2 right-4 transform -translate-y-1/2 text-[#d4af37]">
+                        <i class="fas fa-location-crosshairs"></i>
+                    </button>
+                </div>
+                <div class="relative">
+                    <input type="text" id="dropoff" placeholder="Dropoff Location (e.g., Airport)" class="w-full pl-12 input-field text-sm" required>
+                    <i class="fas fa-location-arrow absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                </div>
+                <div class="flex space-x-4">
+                    <div class="relative flex-1">
+                        <input type="datetime-local" id="datetime" class="w-full pl-12 input-field text-sm" required>
+                        <i class="fas fa-calendar-alt absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                    </div>
+                    <div class="relative flex-1">
+                        <select id="payment-method" class="w-full pl-12 input-field text-sm" required>
+                            <option value="" disabled selected>Select Payment Method</option>
+                        </select>
+                        <i class="fas fa-credit-card absolute top-1/2 left-4 transform -translate-y-1/2 text-[#d4af37] text-lg"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold mb-4" style="font-family: 'Playfair Display', serif;">Select Vehicle</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="vehicle-card text-center" data-type="standard">
+                        <img src="https://images.pexels.com/photos/1719648/pexels-photo-1719648.jpeg" alt="Standard Sedan" class="mx-auto mb-2 rounded-lg object-cover h-32 w-full">
+                        <p class="font-semibold">Standard Sedan</p>
+                        <p class="text-sm">$2.50/km • 4 seats</p>
+                    </div>
+                    <div class="vehicle-card text-center" data-type="premium">
+                        <img src="https://images.pexels.com/photos/3764988/pexels-photo-3764988.jpeg" alt="Premium SUV" class="mx-auto mb-2 rounded-lg object-cover h-32 w-full">
+                        <p class="font-semibold">Premium SUV</p>
+                        <p class="text-sm">$3.50/km • 6 seats</p>
+                    </div>
+                    <div class="vehicle-card text-center" data-type="luxury">
+                        <img src="https://alphazug.com/wp-content/uploads/2020/11/800px-Rolls-Royce_Phantom_VIII_Genf_2019_1Y7A5148.jpg" alt="Luxury Van" class="mx-auto mb-2 rounded-lg object-cover h-32 w-full">
+                        <p class="font-semibold">Luxury Van</p>
+                        <p class="text-sm">$4.00/km • 8 seats</p>
+                    </div>
+                    <div class="vehicle-card text-center" data-type="xl">
+                        <img src="https://media.istockphoto.com/id/1348551471/photo/night-photo-of-a-cadillac-escalade-luxury-suv-limo-used-for-uber-and-lyft.jpg?s=612x612&w=0&k=20&c=o6z49qXSxzjUm6JR8ml2QQNxs1E1oBgJOktZwYAWkZo=" alt="XL Executive" class="mx-auto mb-2 rounded-lg object-cover h-32 w-full">
+                        <p class="font-semibold">XL Executive</p>
+                        <p class="text-sm">$5.00/km • 10 seats</p>
+                    </div>
+                </div>
+                <div id="map" class="map-container"></div>
+                <div id="estimate-breakdown" class="estimate-breakdown hidden">
+                    <h3 class="text-lg font-semibold mb-4">Fare Estimate</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>Base Fare:</span>
+                        <span id="base-fare">$0.00</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Distance (approx):</span>
+                        <span id="distance">0 km</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Time (approx):</span>
+                        <span id="time">0 min</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Vehicle Type:</span>
+                        <span id="vehicle-type">Not Selected</span>
+                    </div>
+                    <div class="flex justify-between font-bold">
+                        <span>Total:</span>
+                        <span id="total-cost">$0.00</span>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 btn-primary text-base flex items-center justify-center gap-2">
+                    <i class="fas fa-car"></i>
+                    <span>Get Estimate & Book</span>
+                </button>
+            </form>
+            <div id="form-message" class="mt-4"></div>
+            <div class="favorite-list hidden">
+                <h3 class="text-xl font-semibold mb-4" style="font-family: 'Playfair Display', serif;">Favorite Locations</h3>
+                <ul id="favorite-locations" class="space-y-2"></ul>
+            </div>
+            <div class="mt-8 text-center">
+                <h3 class="text-xl font-semibold mb-4" style="font-family: 'Playfair Display', serif;">Smart Features</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="p-4 bg-white rounded-lg shadow-md">
+                        <i class="fas fa-map-marked-alt text-3xl text-[#d4af37] mb-2"></i>
+                        <p>Real-Time Tracking</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-md">
+                        <i class="fas fa-lightbulb text-3xl text-[#d4af37] mb-2"></i>
+                        <p>Personalized Suggestions</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-md">
+                        <i class="fas fa-shield-alt text-3xl text-[#d4af37] mb-2"></i>
+                        <p>Secure Payments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-8 w-full">
+        <div class="container mx-auto px-4 max-w-md">
+            <div class="grid grid-cols-1 gap-6 text-center">
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Luxride</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="about.html" class="hover:text-[#d4af37]">About us</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Careers</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Newsroom</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Support</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="help.html" class="hover:text-[#d4af37]">Help Center</a></li>
+                        <li><a href="#" class="hover:text-[#d4af37]">Contact us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-3" style="font-family: 'Playfair Display', serif;">Follow us</h4>
+                    <div class="flex space-x-4 justify-center">
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-facebook-f text-lg"></i></a>
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-twitter text-lg"></i></a>
+                        <a href="#" class="hover:text-[#d4af37]"><i class="fab fa-instagram text-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-center text-sm text-gray-600">
+                <p>&copy; 2025 Luxride Technologies Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 50, density: { enable: true, value_area: 1000 } },
+                color: { value: ['#d4af37', '#3b82f6', '#ffffff', '#b8972e'] },
+                shape: { type: 'circle', stroke: { width: 2, color: '#d4af37' } },
+                opacity: { value: 0.6, random: true, anim: { enable: true, speed: 1.5, opacity_min: 0.1 } },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: '#d4af37', opacity: 0.4, width: 1 },
+                move: { enable: true, speed: 2, direction: 'none', random: true }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+                modes: { repulse: { distance: 100 }, push: { particles_nb: 4 } }
+            },
+            retina_detect: true
+        });
+
+        class Toast {
+            static show(message, type = 'info', duration = 4000) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type} animate-slideInUp`;
+                toast.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} icon"></i>
+                    <span>${message}</span>
+                    <i class="fas fa-times close" onclick="this.parentElement.remove()"></i>
+                `;
+                container.appendChild(toast);
+                setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+            static success(message) { this.show(message, 'success'); }
+            static error(message) { this.show(message, 'error'); }
+            static warning(message) { this.show(message, 'warning'); }
+        }
+
+        const form = document.getElementById('booking-form');
+        const messageContainer = document.getElementById('form-message');
+        const estimateBreakdown = document.getElementById('estimate-breakdown');
+        const vehicleCards = document.querySelectorAll('.vehicle-card');
+        const pickupInput = document.getElementById('pickup');
+        const dropoffInput = document.getElementById('dropoff');
+        const geolocateBtn = document.getElementById('geolocate-btn');
+        const paymentMethodSelect = document.getElementById('payment-method');
+        const favoriteList = document.querySelector('.favorite-list');
+        const favoriteLocations = document.getElementById('favorite-locations');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const cancelConfirm = document.getElementById('cancel-confirm');
+        const confirmBook = document.getElementById('confirm-book');
+        let selectedVehicle = null;
+        let bookingData = null;
+
+        // Initialize map
+        const map = L.map('map').setView([40.7128, -74.0060], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Vehicle selection
+        vehicleCards.forEach(card => {
+            card.addEventListener('click', () => {
+                vehicleCards.forEach(c => {
+                    c.classList.remove('selected');
+                    c.style.border = '';
+                });
+                card.classList.add('selected');
+                card.style.border = '2px solid #d4af37';
+                selectedVehicle = card.dataset.type;
+            });
+        });
+
+        // Load recent locations and favorites
+        function loadRecentLocations() {
+            const trips = JSON.parse(localStorage.getItem('trips') || '[]');
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            if (favorites.length > 0) {
+                favoriteList.classList.remove('hidden');
+                favorites.forEach(loc => {
+                    const li = document.createElement('li');
+                    li.textContent = loc;
+                    li.classList.add('cursor-pointer', 'hover:text-[#d4af37]');
+                    li.addEventListener('click', () => {
+                        pickupInput.value = loc;
+                    });
+                    favoriteLocations.appendChild(li);
+                });
+            }
+        }
+
+        // Load payment methods
+        function loadPaymentMethods() {
+            const methods = JSON.parse(localStorage.getItem('paymentMethods') || '[]');
+            if (methods.length === 0) {
+                methods.push({ id: 'dummy1', name: 'Visa', type: 'card', last4: '1234' });
+                localStorage.setItem('paymentMethods', JSON.stringify(methods));
+            }
+            methods.forEach(method => {
+                const option = document.createElement('option');
+                option.value = method.id;
+                option.textContent = `${method.name} (${method.type} ****${method.last4 || ''})`;
+                paymentMethodSelect.appendChild(option);
+            });
+        }
+
+        // Geolocation
+        geolocateBtn.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    pickupInput.value = `Current Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+                    Toast.success('Location fetched!');
+                    map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+                    L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map).bindPopup('Your Location').openPopup();
+                }, err => {
+                    Toast.error('Unable to fetch location: ' + err.message);
+                }, { enableHighAccuracy: true });
+            } else {
+                Toast.error('Geolocation not supported by your browser.');
+            }
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const pickup = pickupInput.value;
+            const dropoff = dropoffInput.value;
+            const datetime = document.getElementById('datetime').value;
+            const payment = paymentMethodSelect.value;
+
+            if (!pickup || !dropoff || !datetime || !selectedVehicle || !payment) {
+                messageContainer.innerHTML = '<div class="error-toast">Please fill in all required fields, select a vehicle, and select a payment method.</div>';
+                return;
+            }
+
+            // Simulate estimate and map update
+            const distance = Math.floor(Math.random() * 20 + 5);
+            const time = Math.floor(distance * 1.5);
+            const rates = { standard: 2.5, premium: 3.5, luxury: 4.0, xl: 5.0 };
+            const baseFare = 10.0;
+            const total = baseFare + (distance * rates[selectedVehicle]);
+            const vehicleNames = {
+                standard: 'Standard Sedan',
+                premium: 'Premium SUV',
+                luxury: 'Luxury Van',
+                xl: 'XL Executive'
+            };
+
+            document.getElementById('base-fare').textContent = `$${baseFare.toFixed(2)}`;
+            document.getElementById('distance').textContent = `${distance} km`;
+            document.getElementById('time').textContent = `~${time} min`;
+            document.getElementById('vehicle-type').textContent = vehicleNames[selectedVehicle];
+            document.getElementById('total-cost').textContent = `$${total.toFixed(2)}`;
+            estimateBreakdown.classList.remove('hidden');
+
+            // Update map with simulated route
+            map.eachLayer(layer => {
+                if (!!layer.toGeoJSON) map.removeLayer(layer);
+            });
+            const coords = [[40.7128, -74.0060], [40.6413, -73.7781]];
+            L.polyline(coords, { color: '#d4af37', weight: 4 }).addTo(map);
+            map.fitBounds(coords);
+            setTimeout(() => map.invalidateSize(), 100);
+
+            bookingData = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                pickup,
+                destination: dropoff,
+                date: datetime,
+                vehicleInfo: {
+                    name: selectedVehicle,
+                    fullName: vehicleNames[selectedVehicle],
+                    price: total.toFixed(2),
+                    capacity: selectedVehicle === 'standard' ? 4 : selectedVehicle === 'premium' ? 6 : selectedVehicle === 'luxury' ? 8 : 10,
+                    time: `~${time} min`
+                },
+                status: 'requested',
+                archived: false,
+                paymentId: payment
+            };
+            confirmationModal.classList.remove('hidden');
+        });
+
+        cancelConfirm.addEventListener('click', () => confirmationModal.classList.add('hidden'));
+
+        confirmBook.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+            let rides = JSON.parse(localStorage.getItem('rideNotifications') || '[]');
+            rides.push(bookingData);
+            localStorage.setItem('rideNotifications', JSON.stringify(rides));
+
+            let trips = JSON.parse(localStorage.getItem('trips') || '[]');
+            trips.push({
+                id: bookingData.id,
+                route: `${bookingData.pickup} to ${bookingData.destination}`,
+                date: bookingData.date.split('T')[0],
+                type: bookingData.vehicleInfo.fullName,
+                price: parseFloat(bookingData.vehicleInfo.price),
+                status: 'Upcoming'
+            });
+            localStorage.setItem('trips', JSON.stringify(trips));
+
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            if (!favorites.includes(bookingData.pickup)) favorites.push(bookingData.pickup);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+
+            Toast.success('Ride booked successfully! Check your Inbox.');
+            form.reset();
+            estimateBreakdown.classList.add('hidden');
+            vehicleCards.forEach(c => {
+                c.classList.remove('selected');
+                c.style.border = '';
+            });
+            selectedVehicle = null;
+            loadRecentLocations();
+        });
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.add('active');
+            mobileMenuBackdrop.classList.add('active');
+            document.body.classList.add('overflow-hidden');
+        });
+
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        mobileMenuBackdrop.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        document.querySelectorAll('#mobile-menu nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                mobileMenuBackdrop.classList.remove('active');
+                document.body.classList.remove('overflow-hidden');
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecentLocations();
+            loadPaymentMethods();
+            setTimeout(() => map.invalidateSize(), 100);
+        });
+    </script>
+</body>
+</html>
