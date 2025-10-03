@@ -1,14 +1,14 @@
 // File generated from our OpenAPI spec
 import { StripeResource } from '../../StripeResource.js';
 const stripeMethod = StripeResource.method;
-export const ReceivedDebits = StripeResource.extend({
+export const ActiveEntitlements = StripeResource.extend({
     retrieve: stripeMethod({
         method: 'GET',
-        fullPath: '/v1/treasury/received_debits/{id}',
+        fullPath: '/v1/entitlements/active_entitlements/{id}',
     }),
     list: stripeMethod({
         method: 'GET',
-        fullPath: '/v1/treasury/received_debits',
+        fullPath: '/v1/entitlements/active_entitlements',
         methodType: 'list',
     }),
 });
