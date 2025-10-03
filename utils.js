@@ -1,392 +1,268 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseHeadersForFetch = exports.parseHttpHeaderAsNumber = exports.parseHttpHeaderAsString = exports.getAPIMode = exports.jsonStringifyRequestData = exports.concat = exports.createApiKeyAuthenticator = exports.determineProcessUserAgentProperties = exports.validateInteger = exports.flattenAndStringify = exports.isObject = exports.emitWarning = exports.pascalToCamelCase = exports.callbackifyPromiseWithTimeout = exports.normalizeHeader = exports.normalizeHeaders = exports.removeNullish = exports.protoExtend = exports.getOptionsFromArgs = exports.getDataFromArgs = exports.extractUrlParams = exports.makeURLInterpolator = exports.queryStringifyRequestData = exports.isOptionsHash = void 0;
-const qs = require("qs");
-const OPTIONS_KEYS = [
-    'apiKey',
-    'idempotencyKey',
-    'stripeAccount',
-    'apiVersion',
-    'maxNetworkRetries',
-    'timeout',
-    'host',
-    'authenticator',
-    'stripeContext',
-    'additionalHeaders',
-    'streaming',
-];
-function isOptionsHash(o) {
-    return (o &&
-        typeof o === 'object' &&
-        OPTIONS_KEYS.some((prop) => Object.prototype.hasOwnProperty.call(o, prop)));
-}
-exports.isOptionsHash = isOptionsHash;
-/**
- * Stringifies an Object, accommodating nested objects
- * (forming the conventional key 'parent[child]=value')
- */
-function queryStringifyRequestData(data, apiMode) {
-    return (qs
-        .stringify(data, {
-        serializeDate: (d) => Math.floor(d.getTime() / 1000).toString(),
-        arrayFormat: apiMode == 'v2' ? 'repeat' : 'indices',
-    })
-        // Don't use strict form encoding by changing the square bracket control
-        // characters back to their literals. This is fine by the server, and
-        // makes these parameter strings easier to read.
-        .replace(/%5B/g, '[')
-        .replace(/%5D/g, ']'));
-}
-exports.queryStringifyRequestData = queryStringifyRequestData;
-/**
- * Outputs a new function with interpolated object property values.
- * Use like so:
- *   const fn = makeURLInterpolator('some/url/{param1}/{param2}');
- *   fn({ param1: 123, param2: 456 }); // => 'some/url/123/456'
- */
-exports.makeURLInterpolator = (() => {
-    const rc = {
-        '\n': '\\n',
-        '"': '\\"',
-        '\u2028': '\\u2028',
-        '\u2029': '\\u2029',
-    };
-    return (str) => {
-        const cleanString = str.replace(/["\n\r\u2028\u2029]/g, ($0) => rc[$0]);
-        return (outputs) => {
-            return cleanString.replace(/\{([\s\S]+?)\}/g, ($0, $1) => {
-                const output = outputs[$1];
-                if (isValidEncodeUriComponentType(output))
-                    return encodeURIComponent(output);
-                return '';
-            });
-        };
-    };
-})();
-function isValidEncodeUriComponentType(value) {
-    return ['number', 'string', 'boolean'].includes(typeof value);
-}
-function extractUrlParams(path) {
-    const params = path.match(/\{\w+\}/g);
-    if (!params) {
-        return [];
+'use strict';
+
+var formats = require('./formats');
+
+var has = Object.prototype.hasOwnProperty;
+var isArray = Array.isArray;
+
+var hexTable = (function () {
+    var array = [];
+    for (var i = 0; i < 256; ++i) {
+        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
     }
-    return params.map((param) => param.replace(/[{}]/g, ''));
-}
-exports.extractUrlParams = extractUrlParams;
-/**
- * Return the data argument from a list of arguments
- *
- * @param {object[]} args
- * @returns {object}
- */
-function getDataFromArgs(args) {
-    if (!Array.isArray(args) || !args[0] || typeof args[0] !== 'object') {
-        return {};
-    }
-    if (!isOptionsHash(args[0])) {
-        return args.shift();
-    }
-    const argKeys = Object.keys(args[0]);
-    const optionKeysInArgs = argKeys.filter((key) => OPTIONS_KEYS.includes(key));
-    // In some cases options may be the provided as the first argument.
-    // Here we're detecting a case where there are two distinct arguments
-    // (the first being args and the second options) and with known
-    // option keys in the first so that we can warn the user about it.
-    if (optionKeysInArgs.length > 0 &&
-        optionKeysInArgs.length !== argKeys.length) {
-        emitWarning(`Options found in arguments (${optionKeysInArgs.join(', ')}). Did you mean to pass an options object? See https://github.com/stripe/stripe-node/wiki/Passing-Options.`);
-    }
-    return {};
-}
-exports.getDataFromArgs = getDataFromArgs;
-/**
- * Return the options hash from a list of arguments
- */
-function getOptionsFromArgs(args) {
-    const opts = {
-        host: null,
-        headers: {},
-        settings: {},
-        streaming: false,
-    };
-    if (args.length > 0) {
-        const arg = args[args.length - 1];
-        if (typeof arg === 'string') {
-            opts.authenticator = createApiKeyAuthenticator(args.pop());
-        }
-        else if (isOptionsHash(arg)) {
-            const params = Object.assign({}, args.pop());
-            const extraKeys = Object.keys(params).filter((key) => !OPTIONS_KEYS.includes(key));
-            if (extraKeys.length) {
-                emitWarning(`Invalid options found (${extraKeys.join(', ')}); ignoring.`);
-            }
-            if (params.apiKey) {
-                opts.authenticator = createApiKeyAuthenticator(params.apiKey);
-            }
-            if (params.idempotencyKey) {
-                opts.headers['Idempotency-Key'] = params.idempotencyKey;
-            }
-            if (params.stripeAccount) {
-                opts.headers['Stripe-Account'] = params.stripeAccount;
-            }
-            if (params.stripeContext) {
-                if (opts.headers['Stripe-Account']) {
-                    throw new Error("Can't specify both stripeAccount and stripeContext.");
+
+    return array;
+}());
+
+var compactQueue = function compactQueue(queue) {
+    while (queue.length > 1) {
+        var item = queue.pop();
+        var obj = item.obj[item.prop];
+
+        if (isArray(obj)) {
+            var compacted = [];
+
+            for (var j = 0; j < obj.length; ++j) {
+                if (typeof obj[j] !== 'undefined') {
+                    compacted.push(obj[j]);
                 }
-                opts.headers['Stripe-Context'] = params.stripeContext;
             }
-            if (params.apiVersion) {
-                opts.headers['Stripe-Version'] = params.apiVersion;
-            }
-            if (Number.isInteger(params.maxNetworkRetries)) {
-                opts.settings.maxNetworkRetries = params.maxNetworkRetries;
-            }
-            if (Number.isInteger(params.timeout)) {
-                opts.settings.timeout = params.timeout;
-            }
-            if (params.host) {
-                opts.host = params.host;
-            }
-            if (params.authenticator) {
-                if (params.apiKey) {
-                    throw new Error("Can't specify both apiKey and authenticator.");
-                }
-                if (typeof params.authenticator !== 'function') {
-                    throw new Error('The authenticator must be a function ' +
-                        'receiving a request as the first parameter.');
-                }
-                opts.authenticator = params.authenticator;
-            }
-            if (params.additionalHeaders) {
-                opts.headers = params.additionalHeaders;
-            }
-            if (params.streaming) {
-                opts.streaming = true;
-            }
+
+            item.obj[item.prop] = compacted;
         }
     }
-    return opts;
-}
-exports.getOptionsFromArgs = getOptionsFromArgs;
-/**
- * Provide simple "Class" extension mechanism.
- * <!-- Public API accessible via Stripe.StripeResource.extend -->
- */
-function protoExtend(sub) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const Super = this;
-    const Constructor = Object.prototype.hasOwnProperty.call(sub, 'constructor')
-        ? sub.constructor
-        : function (...args) {
-            Super.apply(this, args);
-        };
-    // This initialization logic is somewhat sensitive to be compatible with
-    // divergent JS implementations like the one found in Qt. See here for more
-    // context:
-    //
-    // https://github.com/stripe/stripe-node/pull/334
-    Object.assign(Constructor, Super);
-    Constructor.prototype = Object.create(Super.prototype);
-    Object.assign(Constructor.prototype, sub);
-    return Constructor;
-}
-exports.protoExtend = protoExtend;
-/**
- * Remove empty values from an object
- */
-function removeNullish(obj) {
-    if (typeof obj !== 'object') {
-        throw new Error('Argument must be an object');
-    }
-    return Object.keys(obj).reduce((result, key) => {
-        if (obj[key] != null) {
-            result[key] = obj[key];
+};
+
+var arrayToObject = function arrayToObject(source, options) {
+    var obj = options && options.plainObjects ? { __proto__: null } : {};
+    for (var i = 0; i < source.length; ++i) {
+        if (typeof source[i] !== 'undefined') {
+            obj[i] = source[i];
         }
-        return result;
-    }, {});
-}
-exports.removeNullish = removeNullish;
-/**
- * Normalize standard HTTP Headers:
- * {'foo-bar': 'hi'}
- * becomes
- * {'Foo-Bar': 'hi'}
- */
-function normalizeHeaders(obj) {
-    if (!(obj && typeof obj === 'object')) {
-        return obj;
     }
-    return Object.keys(obj).reduce((result, header) => {
-        result[normalizeHeader(header)] = obj[header];
-        return result;
-    }, {});
-}
-exports.normalizeHeaders = normalizeHeaders;
-/**
- * Stolen from https://github.com/marten-de-vries/header-case-normalizer/blob/master/index.js#L36-L41
- * without the exceptions which are irrelevant to us.
- */
-function normalizeHeader(header) {
-    return header
-        .split('-')
-        .map((text) => text.charAt(0).toUpperCase() + text.substr(1).toLowerCase())
-        .join('-');
-}
-exports.normalizeHeader = normalizeHeader;
-function callbackifyPromiseWithTimeout(promise, callback) {
-    if (callback) {
-        // Ensure callback is called outside of promise stack.
-        return promise.then((res) => {
-            setTimeout(() => {
-                callback(null, res);
-            }, 0);
-        }, (err) => {
-            setTimeout(() => {
-                callback(err, null);
-            }, 0);
-        });
+
+    return obj;
+};
+
+var merge = function merge(target, source, options) {
+    /* eslint no-param-reassign: 0 */
+    if (!source) {
+        return target;
     }
-    return promise;
-}
-exports.callbackifyPromiseWithTimeout = callbackifyPromiseWithTimeout;
-/**
- * Allow for special capitalization cases (such as OAuth)
- */
-function pascalToCamelCase(name) {
-    if (name === 'OAuth') {
-        return 'oauth';
-    }
-    else {
-        return name[0].toLowerCase() + name.substring(1);
-    }
-}
-exports.pascalToCamelCase = pascalToCamelCase;
-function emitWarning(warning) {
-    if (typeof process.emitWarning !== 'function') {
-        return console.warn(`Stripe: ${warning}`); /* eslint-disable-line no-console */
-    }
-    return process.emitWarning(warning, 'Stripe');
-}
-exports.emitWarning = emitWarning;
-function isObject(obj) {
-    const type = typeof obj;
-    return (type === 'function' || type === 'object') && !!obj;
-}
-exports.isObject = isObject;
-// For use in multipart requests
-function flattenAndStringify(data) {
-    const result = {};
-    const step = (obj, prevKey) => {
-        Object.entries(obj).forEach(([key, value]) => {
-            const newKey = prevKey ? `${prevKey}[${key}]` : key;
-            if (isObject(value)) {
-                if (!(value instanceof Uint8Array) &&
-                    !Object.prototype.hasOwnProperty.call(value, 'data')) {
-                    // Non-buffer non-file Objects are recursively flattened
-                    return step(value, newKey);
-                }
-                else {
-                    // Buffers and file objects are stored without modification
-                    result[newKey] = value;
-                }
+
+    if (typeof source !== 'object' && typeof source !== 'function') {
+        if (isArray(target)) {
+            target.push(source);
+        } else if (target && typeof target === 'object') {
+            if (
+                (options && (options.plainObjects || options.allowPrototypes))
+                || !has.call(Object.prototype, source)
+            ) {
+                target[source] = true;
             }
-            else {
-                // Primitives are converted to strings
-                result[newKey] = String(value);
+        } else {
+            return [target, source];
+        }
+
+        return target;
+    }
+
+    if (!target || typeof target !== 'object') {
+        return [target].concat(source);
+    }
+
+    var mergeTarget = target;
+    if (isArray(target) && !isArray(source)) {
+        mergeTarget = arrayToObject(target, options);
+    }
+
+    if (isArray(target) && isArray(source)) {
+        source.forEach(function (item, i) {
+            if (has.call(target, i)) {
+                var targetItem = target[i];
+                if (targetItem && typeof targetItem === 'object' && item && typeof item === 'object') {
+                    target[i] = merge(targetItem, item, options);
+                } else {
+                    target.push(item);
+                }
+            } else {
+                target[i] = item;
             }
         });
-    };
-    step(data, null);
-    return result;
-}
-exports.flattenAndStringify = flattenAndStringify;
-function validateInteger(name, n, defaultVal) {
-    if (!Number.isInteger(n)) {
-        if (defaultVal !== undefined) {
-            return defaultVal;
+        return target;
+    }
+
+    return Object.keys(source).reduce(function (acc, key) {
+        var value = source[key];
+
+        if (has.call(acc, key)) {
+            acc[key] = merge(acc[key], value, options);
+        } else {
+            acc[key] = value;
         }
-        else {
-            throw new Error(`${name} must be an integer`);
+        return acc;
+    }, mergeTarget);
+};
+
+var assign = function assignSingleSource(target, source) {
+    return Object.keys(source).reduce(function (acc, key) {
+        acc[key] = source[key];
+        return acc;
+    }, target);
+};
+
+var decode = function (str, defaultDecoder, charset) {
+    var strWithoutPlus = str.replace(/\+/g, ' ');
+    if (charset === 'iso-8859-1') {
+        // unescape never throws, no try...catch needed:
+        return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape);
+    }
+    // utf-8
+    try {
+        return decodeURIComponent(strWithoutPlus);
+    } catch (e) {
+        return strWithoutPlus;
+    }
+};
+
+var limit = 1024;
+
+/* eslint operator-linebreak: [2, "before"] */
+
+var encode = function encode(str, defaultEncoder, charset, kind, format) {
+    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
+    // It has been adapted here for stricter adherence to RFC 3986
+    if (str.length === 0) {
+        return str;
+    }
+
+    var string = str;
+    if (typeof str === 'symbol') {
+        string = Symbol.prototype.toString.call(str);
+    } else if (typeof str !== 'string') {
+        string = String(str);
+    }
+
+    if (charset === 'iso-8859-1') {
+        return escape(string).replace(/%u[0-9a-f]{4}/gi, function ($0) {
+            return '%26%23' + parseInt($0.slice(2), 16) + '%3B';
+        });
+    }
+
+    var out = '';
+    for (var j = 0; j < string.length; j += limit) {
+        var segment = string.length >= limit ? string.slice(j, j + limit) : string;
+        var arr = [];
+
+        for (var i = 0; i < segment.length; ++i) {
+            var c = segment.charCodeAt(i);
+            if (
+                c === 0x2D // -
+                || c === 0x2E // .
+                || c === 0x5F // _
+                || c === 0x7E // ~
+                || (c >= 0x30 && c <= 0x39) // 0-9
+                || (c >= 0x41 && c <= 0x5A) // a-z
+                || (c >= 0x61 && c <= 0x7A) // A-Z
+                || (format === formats.RFC1738 && (c === 0x28 || c === 0x29)) // ( )
+            ) {
+                arr[arr.length] = segment.charAt(i);
+                continue;
+            }
+
+            if (c < 0x80) {
+                arr[arr.length] = hexTable[c];
+                continue;
+            }
+
+            if (c < 0x800) {
+                arr[arr.length] = hexTable[0xC0 | (c >> 6)]
+                    + hexTable[0x80 | (c & 0x3F)];
+                continue;
+            }
+
+            if (c < 0xD800 || c >= 0xE000) {
+                arr[arr.length] = hexTable[0xE0 | (c >> 12)]
+                    + hexTable[0x80 | ((c >> 6) & 0x3F)]
+                    + hexTable[0x80 | (c & 0x3F)];
+                continue;
+            }
+
+            i += 1;
+            c = 0x10000 + (((c & 0x3FF) << 10) | (segment.charCodeAt(i) & 0x3FF));
+
+            arr[arr.length] = hexTable[0xF0 | (c >> 18)]
+                + hexTable[0x80 | ((c >> 12) & 0x3F)]
+                + hexTable[0x80 | ((c >> 6) & 0x3F)]
+                + hexTable[0x80 | (c & 0x3F)];
+        }
+
+        out += arr.join('');
+    }
+
+    return out;
+};
+
+var compact = function compact(value) {
+    var queue = [{ obj: { o: value }, prop: 'o' }];
+    var refs = [];
+
+    for (var i = 0; i < queue.length; ++i) {
+        var item = queue[i];
+        var obj = item.obj[item.prop];
+
+        var keys = Object.keys(obj);
+        for (var j = 0; j < keys.length; ++j) {
+            var key = keys[j];
+            var val = obj[key];
+            if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
+                queue.push({ obj: obj, prop: key });
+                refs.push(val);
+            }
         }
     }
-    return n;
-}
-exports.validateInteger = validateInteger;
-function determineProcessUserAgentProperties() {
-    return typeof process === 'undefined'
-        ? {}
-        : {
-            lang_version: process.version,
-            platform: process.platform,
-        };
-}
-exports.determineProcessUserAgentProperties = determineProcessUserAgentProperties;
-function createApiKeyAuthenticator(apiKey) {
-    const authenticator = (request) => {
-        request.headers.Authorization = 'Bearer ' + apiKey;
-        return Promise.resolve();
-    };
-    // For testing
-    authenticator._apiKey = apiKey;
-    return authenticator;
-}
-exports.createApiKeyAuthenticator = createApiKeyAuthenticator;
-/**
- * Joins an array of Uint8Arrays into a single Uint8Array
- */
-function concat(arrays) {
-    const totalLength = arrays.reduce((len, array) => len + array.length, 0);
-    const merged = new Uint8Array(totalLength);
-    let offset = 0;
-    arrays.forEach((array) => {
-        merged.set(array, offset);
-        offset += array.length;
-    });
-    return merged;
-}
-exports.concat = concat;
-/**
- * Replaces Date objects with Unix timestamps
- */
-function dateTimeReplacer(key, value) {
-    if (this[key] instanceof Date) {
-        return Math.floor(this[key].getTime() / 1000).toString();
-    }
+
+    compactQueue(queue);
+
     return value;
-}
-/**
- * JSON stringifies an Object, replacing Date objects with Unix timestamps
- */
-function jsonStringifyRequestData(data) {
-    return JSON.stringify(data, dateTimeReplacer);
-}
-exports.jsonStringifyRequestData = jsonStringifyRequestData;
-/**
- * Inspects the given path to determine if the endpoint is for v1 or v2 API
- */
-function getAPIMode(path) {
-    if (!path) {
-        return 'v1';
+};
+
+var isRegExp = function isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+
+var isBuffer = function isBuffer(obj) {
+    if (!obj || typeof obj !== 'object') {
+        return false;
     }
-    return path.startsWith('/v2') ? 'v2' : 'v1';
-}
-exports.getAPIMode = getAPIMode;
-function parseHttpHeaderAsString(header) {
-    if (Array.isArray(header)) {
-        return header.join(', ');
+
+    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
+};
+
+var combine = function combine(a, b) {
+    return [].concat(a, b);
+};
+
+var maybeMap = function maybeMap(val, fn) {
+    if (isArray(val)) {
+        var mapped = [];
+        for (var i = 0; i < val.length; i += 1) {
+            mapped.push(fn(val[i]));
+        }
+        return mapped;
     }
-    return String(header);
-}
-exports.parseHttpHeaderAsString = parseHttpHeaderAsString;
-function parseHttpHeaderAsNumber(header) {
-    const number = Array.isArray(header) ? header[0] : header;
-    return Number(number);
-}
-exports.parseHttpHeaderAsNumber = parseHttpHeaderAsNumber;
-function parseHeadersForFetch(headers) {
-    return Object.entries(headers).map(([key, value]) => {
-        return [key, parseHttpHeaderAsString(value)];
-    });
-}
-exports.parseHeadersForFetch = parseHeadersForFetch;
+    return fn(val);
+};
+
+module.exports = {
+    arrayToObject: arrayToObject,
+    assign: assign,
+    combine: combine,
+    compact: compact,
+    decode: decode,
+    encode: encode,
+    isBuffer: isBuffer,
+    isRegExp: isRegExp,
+    maybeMap: maybeMap,
+    merge: merge
+};

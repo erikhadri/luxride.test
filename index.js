@@ -1,183 +1,158 @@
-"use strict"
+/*!
+ * parseurl
+ * Copyright(c) 2014 Jonathan Ong
+ * Copyright(c) 2014-2017 Douglas Christopher Wilson
+ * MIT Licensed
+ */
 
-var Buffer = require("safer-buffer").Buffer
+'use strict'
 
-var bomHandling = require("./bom-handling")
-var mergeModules = require("./helpers/merge-exports")
-var iconv = module.exports
+/**
+ * Module dependencies.
+ * @private
+ */
 
-// All codecs and aliases are kept here, keyed by encoding name/alias.
-// They are lazy loaded in `iconv.getCodec` from `encodings/index.js`.
-// Cannot initialize with { __proto__: null } because Boolean({ __proto__: null }) === true
-iconv.encodings = null
+var url = require('url')
+var parse = url.parse
+var Url = url.Url
 
-// Characters emitted in case of error.
-iconv.defaultCharUnicode = "�"
-iconv.defaultCharSingleByte = "?"
+/**
+ * Module exports.
+ * @public
+ */
 
-// Public API.
-iconv.encode = function encode (str, encoding, options) {
-  str = "" + (str || "") // Ensure string.
+module.exports = parseurl
+module.exports.original = originalurl
 
-  var encoder = iconv.getEncoder(encoding, options)
+/**
+ * Parse the `req` url with memoization.
+ *
+ * @param {ServerRequest} req
+ * @return {Object}
+ * @public
+ */
 
-  var res = encoder.write(str)
-  var trail = encoder.end()
+function parseurl (req) {
+  var url = req.url
 
-  return (trail && trail.length > 0) ? Buffer.concat([res, trail]) : res
-}
-
-iconv.decode = function decode (buf, encoding, options) {
-  if (typeof buf === "string") {
-    if (!iconv.skipDecodeWarning) {
-      console.error("Iconv-lite warning: decode()-ing strings is deprecated. Refer to https://github.com/ashtuchkin/iconv-lite/wiki/Use-Buffers-when-decoding")
-      iconv.skipDecodeWarning = true
-    }
-
-    buf = Buffer.from("" + (buf || ""), "binary") // Ensure buffer.
+  if (url === undefined) {
+    // URL is undefined
+    return undefined
   }
 
-  var decoder = iconv.getDecoder(encoding, options)
+  var parsed = req._parsedUrl
 
-  var res = decoder.write(buf)
-  var trail = decoder.end()
-
-  return trail ? (res + trail) : res
-}
-
-iconv.encodingExists = function encodingExists (enc) {
-  try {
-    iconv.getCodec(enc)
-    return true
-  } catch (e) {
-    return false
-  }
-}
-
-// Legacy aliases to convert functions
-iconv.toEncoding = iconv.encode
-iconv.fromEncoding = iconv.decode
-
-// Search for a codec in iconv.encodings. Cache codec data in iconv._codecDataCache.
-iconv._codecDataCache = { __proto__: null }
-
-iconv.getCodec = function getCodec (encoding) {
-  if (!iconv.encodings) {
-    var raw = require("../encodings")
-    // TODO: In future versions when old nodejs support is removed can use object.assign
-    iconv.encodings = { __proto__: null } // Initialize as empty object.
-    mergeModules(iconv.encodings, raw)
+  if (fresh(url, parsed)) {
+    // Return cached URL parse
+    return parsed
   }
 
-  // Canonicalize encoding name: strip all non-alphanumeric chars and appended year.
-  var enc = iconv._canonicalizeEncoding(encoding)
+  // Parse the URL
+  parsed = fastparse(url)
+  parsed._raw = url
 
-  // Traverse iconv.encodings to find actual codec.
-  var codecOptions = {}
-  while (true) {
-    var codec = iconv._codecDataCache[enc]
+  return (req._parsedUrl = parsed)
+};
 
-    if (codec) { return codec }
+/**
+ * Parse the `req` original url with fallback and memoization.
+ *
+ * @param {ServerRequest} req
+ * @return {Object}
+ * @public
+ */
 
-    var codecDef = iconv.encodings[enc]
+function originalurl (req) {
+  var url = req.originalUrl
 
-    switch (typeof codecDef) {
-      case "string": // Direct alias to other encoding.
-        enc = codecDef
+  if (typeof url !== 'string') {
+    // Fallback
+    return parseurl(req)
+  }
+
+  var parsed = req._parsedOriginalUrl
+
+  if (fresh(url, parsed)) {
+    // Return cached URL parse
+    return parsed
+  }
+
+  // Parse the URL
+  parsed = fastparse(url)
+  parsed._raw = url
+
+  return (req._parsedOriginalUrl = parsed)
+};
+
+/**
+ * Parse the `str` url with fast-path short-cut.
+ *
+ * @param {string} str
+ * @return {Object}
+ * @private
+ */
+
+function fastparse (str) {
+  if (typeof str !== 'string' || str.charCodeAt(0) !== 0x2f /* / */) {
+    return parse(str)
+  }
+
+  var pathname = str
+  var query = null
+  var search = null
+
+  // This takes the regexp from https://github.com/joyent/node/pull/7878
+  // Which is /^(\/[^?#\s]*)(\?[^#\s]*)?$/
+  // And unrolls it into a for loop
+  for (var i = 1; i < str.length; i++) {
+    switch (str.charCodeAt(i)) {
+      case 0x3f: /* ?  */
+        if (search === null) {
+          pathname = str.substring(0, i)
+          query = str.substring(i + 1)
+          search = str.substring(i)
+        }
         break
-
-      case "object": // Alias with options. Can be layered.
-        for (var key in codecDef) { codecOptions[key] = codecDef[key] }
-
-        if (!codecOptions.encodingName) { codecOptions.encodingName = enc }
-
-        enc = codecDef.type
-        break
-
-      case "function": // Codec itself.
-        if (!codecOptions.encodingName) { codecOptions.encodingName = enc }
-
-        // The codec function must load all tables and return object with .encoder and .decoder methods.
-        // It'll be called only once (for each different options object).
-        //
-        codec = new codecDef(codecOptions, iconv)
-
-        iconv._codecDataCache[codecOptions.encodingName] = codec // Save it to be reused later.
-        return codec
-
-      default:
-        throw new Error("Encoding not recognized: '" + encoding + "' (searched as: '" + enc + "')")
+      case 0x09: /* \t */
+      case 0x0a: /* \n */
+      case 0x0c: /* \f */
+      case 0x0d: /* \r */
+      case 0x20: /*    */
+      case 0x23: /* #  */
+      case 0xa0:
+      case 0xfeff:
+        return parse(str)
     }
   }
-}
 
-iconv._canonicalizeEncoding = function (encoding) {
-  // Canonicalize encoding name: strip all non-alphanumeric chars and appended year.
-  return ("" + encoding).toLowerCase().replace(/:\d{4}$|[^0-9a-z]/g, "")
-}
+  var url = Url !== undefined
+    ? new Url()
+    : {}
 
-iconv.getEncoder = function getEncoder (encoding, options) {
-  var codec = iconv.getCodec(encoding)
-  var encoder = new codec.encoder(options, codec)
+  url.path = str
+  url.href = str
+  url.pathname = pathname
 
-  if (codec.bomAware && options && options.addBOM) { encoder = new bomHandling.PrependBOM(encoder, options) }
-
-  return encoder
-}
-
-iconv.getDecoder = function getDecoder (encoding, options) {
-  var codec = iconv.getCodec(encoding)
-  var decoder = new codec.decoder(options, codec)
-
-  if (codec.bomAware && !(options && options.stripBOM === false)) { decoder = new bomHandling.StripBOM(decoder, options) }
-
-  return decoder
-}
-
-// Streaming API
-// NOTE: Streaming API naturally depends on 'stream' module from Node.js. Unfortunately in browser environments this module can add
-// up to 100Kb to the output bundle. To avoid unnecessary code bloat, we don't enable Streaming API in browser by default.
-// If you would like to enable it explicitly, please add the following code to your app:
-// > iconv.enableStreamingAPI(require('stream'));
-iconv.enableStreamingAPI = function enableStreamingAPI (streamModule) {
-  if (iconv.supportsStreams) { return }
-
-  // Dependency-inject stream module to create IconvLite stream classes.
-  var streams = require("./streams")(streamModule)
-
-  // Not public API yet, but expose the stream classes.
-  iconv.IconvLiteEncoderStream = streams.IconvLiteEncoderStream
-  iconv.IconvLiteDecoderStream = streams.IconvLiteDecoderStream
-
-  // Streaming API.
-  iconv.encodeStream = function encodeStream (encoding, options) {
-    return new iconv.IconvLiteEncoderStream(iconv.getEncoder(encoding, options), options)
+  if (search !== null) {
+    url.query = query
+    url.search = search
   }
 
-  iconv.decodeStream = function decodeStream (encoding, options) {
-    return new iconv.IconvLiteDecoderStream(iconv.getDecoder(encoding, options), options)
-  }
-
-  iconv.supportsStreams = true
+  return url
 }
 
-// Enable Streaming API automatically if 'stream' module is available and non-empty (the majority of environments).
-var streamModule
-try {
-  streamModule = require("stream")
-} catch (e) {}
+/**
+ * Determine if parsed is still fresh for url.
+ *
+ * @param {string} url
+ * @param {object} parsedUrl
+ * @return {boolean}
+ * @private
+ */
 
-if (streamModule && streamModule.Transform) {
-  iconv.enableStreamingAPI(streamModule)
-} else {
-  // In rare cases where 'stream' module is not available by default, throw a helpful exception.
-  iconv.encodeStream = iconv.decodeStream = function () {
-    throw new Error("iconv-lite Streaming API is not enabled. Use iconv.enableStreamingAPI(require('stream')); to enable it.")
-  }
-}
-
-// Some environments, such as browsers, may not load JavaScript files as UTF-8
-// eslint-disable-next-line no-constant-condition
-if ("Ā" !== "\u0100") {
-  console.error("iconv-lite warning: js files use non-utf8 encoding. See https://github.com/ashtuchkin/iconv-lite/wiki/Javascript-source-file-encodings for more info.")
+function fresh (url, parsedUrl) {
+  return typeof parsedUrl === 'object' &&
+    parsedUrl !== null &&
+    (Url === undefined || parsedUrl instanceof Url) &&
+    parsedUrl._raw === url
 }
